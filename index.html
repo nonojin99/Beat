@@ -544,10 +544,9 @@ font-weight: bold;
 </div>
 
 <script>
-// Supabase 설정
 const SUPABASE_URL = 'https://ijmmqmarbkkkssciagof.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_-Yw_iVRLOGF0W1CFj_v9SA_PLm301S6';
-let supabaseClient = null;
+var supabaseClient = null;
 
 try {
 if (window.supabase && SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
@@ -557,8 +556,7 @@ supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 console.warn('Supabase initialization bypassed:', err);
 }
 
-// 🎵 TRACKS 설정 (자켓 이미지 경로 coverUrl 추가!)
-const TRACKS = [
+var TRACKS = [
 {
 id: 'neon_city_night',
 title: 'Neon City Night',
@@ -615,26 +613,30 @@ difficulties: [
 }
 ];
 
-let currentUser = 'BeatMaster';
-let currentTrackIndex = 0;
-let selectedDiff = null;
+var currentUser = 'BeatMaster';
+var currentTrackIndex = 0;
+var selectedDiff = null;
 
-let audioElement = new Audio();
+var audioElement = new Audio();
 
 function switchScreen(screenId) {
-document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+var screens = document.querySelectorAll('.screen');
+for (var i = 0; i < screens.length; i++) {
+screens[i].classList.remove('active');
+}
 document.getElementById(screenId).classList.add('active');
 stopAudio();
 }
 
 function goToSongSelect() {
-const input = document.getElementById('inputUserNickname').value.trim();
+var input = document.getElementById('inputUserNickname').value.trim();
 if (input) currentUser = input;
 
-// Safari 등 오디오 자동재생 제한 풀기
+try {
 audioElement.play().then(function() {
 audioElement.pause();
 }).catch(function(e){});
+} catch(e) {}
 
 switchScreen('songSelectScreen');
 renderCarousel();
@@ -646,56 +648,35 @@ switchScreen('difficultyScreen');
 renderDifficulties();
 }
 
-    function renderCarousel() {
-        const trackEl = document.getElementById('carouselTrack');
-        trackEl.innerHTML = '';
+function renderCarousel() {
+var trackEl = document.getElementById('carouselTrack');
+trackEl.innerHTML = '';
 
-        TRACKS.forEach(function(track, idx) {
-            const card = document.createElement('div');
-            card.className = 'song-card' + (idx === currentTrackIndex ? ' active' : '');
-            card.onclick = function() {
-                currentTrackIndex = idx;
-                updateCarousel();
-            };
+TRACKS.forEach(function(track, idx) {
+var card = document.createElement('div');
+card.className = 'song-card' + (idx === currentTrackIndex ? ' active' : '');
+card.onclick = function() {
+currentTrackIndex = idx;
+updateCarousel();
+};
 
-            // 따옴표 에러 방지를 위해 Element 생성 및 style 직접 지정
-            const albumArtDiv = document.createElement('div');
-            albumArtDiv.className = 'album-art';
-            
-            if (track.coverUrl) {
-                albumArtDiv.style.backgroundImage = 'url("' + track.coverUrl + '")';
-            } else {
-                albumArtDiv.innerHTML = '<i class="fa-solid ' + track.icon + '"></i>';
-            }
+var albumArtDiv = document.createElement('div');
+albumArtDiv.className = 'album-art';
+if (track.coverUrl) {
+albumArtDiv.style.backgroundImage = 'url("' + track.coverUrl + '")';
+} else {
+albumArtDiv.innerHTML = '<i class="fa-solid ' + track.icon + '"></i>';
+}
 
-            const songInfoDiv = document.createElement('div');
-            songInfoDiv.className = 'song-info';
-            songInfoDiv.innerHTML = 
-                '<div class="song-title">' + track.title + '</div>' +
-                '<div class="song-genre">' + track.genre + '</div>' +
-                '<div class="song-bpm">' + track.bpm + ' BPM</div>';
-
-            card.appendChild(albumArtDiv);
-            card.appendChild(songInfoDiv);
-            trackEl.appendChild(card);
-        });
-
-        updateCarousel();
-    }
-
-// 커버 이미지가 있으면 배경 이미지 적용, 없으면 기본 아이콘 표시
-var bgStyle = track.coverUrl ? 'style="background-image: url('' + track.coverUrl + '');"' : '';
-var iconHtml = track.coverUrl ? '' : '<i class="fa-solid ' + track.icon + '"></i>';
-
-card.innerHTML =
-'<div class="album-art" ' + bgStyle + '>' +
-iconHtml +
-'</div>' +
-'<div class="song-info">' +
+var songInfoDiv = document.createElement('div');
+songInfoDiv.className = 'song-info';
+songInfoDiv.innerHTML =
 '<div class="song-title">' + track.title + '</div>' +
 '<div class="song-genre">' + track.genre + '</div>' +
-'<div class="song-bpm">' + track.bpm + ' BPM</div>' +
-'</div>';
+'<div class="song-bpm">' + track.bpm + ' BPM</div>';
+
+card.appendChild(albumArtDiv);
+card.appendChild(songInfoDiv);
 trackEl.appendChild(card);
 });
 
@@ -703,15 +684,15 @@ updateCarousel();
 }
 
 function updateCarousel() {
-const trackEl = document.getElementById('carouselTrack');
-const offset = -currentTrackIndex * (280 + 40);
+var trackEl = document.getElementById('carouselTrack');
+var offset = -currentTrackIndex * (280 + 40);
 trackEl.style.transform = 'translateX(' + offset + 'px)';
 
-const cards = document.querySelectorAll('.song-card');
-cards.forEach(function(card, idx) {
-if (idx === currentTrackIndex) card.classList.add('active');
-else card.classList.remove('active');
-});
+var cards = document.querySelectorAll('.song-card');
+for (var i = 0; i < cards.length; i++) {
+if (i === currentTrackIndex) cards[i].classList.add('active');
+else cards[i].classList.remove('active');
+}
 
 playAudioPreview();
 }
@@ -725,13 +706,13 @@ updateCarousel();
 
 function playAudioPreview() {
 stopAudio();
-const track = TRACKS[currentTrackIndex];
+var track = TRACKS[currentTrackIndex];
 audioElement.src = track.audioUrl;
 audioElement.currentTime = 15;
 audioElement.volume = 0.5;
-var playPromise = audioElement.play();
-if (playPromise !== undefined) {
-playPromise.catch(function(e) { console.log('Autoplay prevented'); });
+var p = audioElement.play();
+if (p !== undefined) {
+p.catch(function(e) { console.log('Autoplay prevented'); });
 }
 }
 
@@ -742,20 +723,23 @@ audioElement.pause();
 }
 
 function renderDifficulties() {
-const track = TRACKS[currentTrackIndex];
+var track = TRACKS[currentTrackIndex];
 document.getElementById('diffSongTitle').innerText = 'Selected Track: ' + track.title + ' (' + track.bpm + ' BPM)';
 
-const container = document.getElementById('diffContainer');
+var container = document.getElementById('diffContainer');
 container.innerHTML = '';
 
-const sortedDiffs = track.difficulties.slice().sort(function(a, b) { return a.level - b.level; });
+var sortedDiffs = track.difficulties.slice().sort(function(a, b) { return a.level - b.level; });
 selectedDiff = sortedDiffs[0];
 
 sortedDiffs.forEach(function(diff, idx) {
-const card = document.createElement('div');
+var card = document.createElement('div');
 card.className = 'diff-card' + (idx === 0 ? ' selected' : '');
 card.onclick = function() {
-document.querySelectorAll('.diff-card').forEach(function(c) { c.classList.remove('selected'); });
+var allCards = document.querySelectorAll('.diff-card');
+for (var i = 0; i < allCards.length; i++) {
+allCards[i].classList.remove('selected');
+}
 card.classList.add('selected');
 selectedDiff = diff;
 };
@@ -767,25 +751,25 @@ container.appendChild(card);
 });
 }
 
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+var canvas = document.getElementById('gameCanvas');
+var ctx = canvas.getContext('2d');
 
-let isPlaying = false;
-let startTime = 0;
-let activeNotes = [];
+var isPlaying = false;
+var startTime = 0;
+var activeNotes = [];
 
-let score = 0;
-let combo = 0;
-let maxCombo = 0;
-let perfectCount = 0;
-let totalNotes = 0;
-let lastJudgment = '';
-let judgmentTimer = 0;
+var score = 0;
+var combo = 0;
+var maxCombo = 0;
+var perfectCount = 0;
+var totalNotes = 0;
+var lastJudgment = '';
+var judgmentTimer = 0;
 
-const LANE_KEYS = ['KeyS', 'KeyD', 'KeyK', 'KeyL'];
-const LANE_NAMES = ['S', 'D', 'K', 'L'];
-const LANE_COLORS = ['#ff0055', '#00f2fe', '#00f2fe', '#ff0055'];
-const KEY_STATE = [false, false, false, false];
+var LANE_KEYS = ['KeyS', 'KeyD', 'KeyK', 'KeyL'];
+var LANE_NAMES = ['S', 'D', 'K', 'L'];
+var LANE_COLORS = ['#ff0055', '#00f2fe', '#00f2fe', '#ff0055'];
+var KEY_STATE = [false, false, false, false];
 
 function resizeCanvas() {
 canvas.width = window.innerWidth;
@@ -797,7 +781,7 @@ function startGame() {
 switchScreen('gameScreen');
 resizeCanvas();
 
-const track = TRACKS[currentTrackIndex];
+var track = TRACKS[currentTrackIndex];
 document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
 document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
 
@@ -824,17 +808,17 @@ requestAnimationFrame(gameLoop);
 }
 
 function generateChart(bpm, durationSec) {
-const notes = [];
-const interval = 60 / bpm;
-let currentTime = 2.0;
-const totalBeats = Math.floor(durationSec / interval);
+var notes = [];
+var interval = 60 / bpm;
+var currentTime = 2.0;
+var totalBeats = Math.floor(durationSec / interval);
 
-for (let i = 0; i < totalBeats; i++) {
-const lane = Math.floor(Math.random() * 4);
+for (var i = 0; i < totalBeats; i++) {
+var lane = Math.floor(Math.random() * 4);
 notes.push({ time: currentTime, lane: lane, hit: false, missed: false });
 
 if (selectedDiff.level > 5 && Math.random() > 0.5) {
-const secondLane = (lane + 1 + Math.floor(Math.random() * 3)) % 4;
+var secondLane = (lane + 1 + Math.floor(Math.random() * 3)) % 4;
 notes.push({ time: currentTime, lane: secondLane, hit: false, missed: false });
 }
 currentTime += (Math.random() > 0.2 ? interval : interval * 0.5);
@@ -845,13 +829,13 @@ return notes;
 function gameLoop(timestamp) {
 if (!isPlaying) return;
 
-const elapsedTime = (timestamp - startTime) / 1000;
-const speed = selectedDiff.speed;
-const judgmentY = canvas.height - 120;
+var elapsedTime = (timestamp - startTime) / 1000;
+var speed = selectedDiff.speed;
+var judgmentY = canvas.height - 120;
 
 activeNotes.forEach(function(note) {
 if (!note.hit && !note.missed) {
-const noteY = judgmentY - (note.time - elapsedTime) * speed;
+var noteY = judgmentY - (note.time - elapsedTime) * speed;
 if (noteY > judgmentY + 80) {
 note.missed = true;
 handleJudgment('MISS');
@@ -860,10 +844,10 @@ handleJudgment('MISS');
 });
 
 document.getElementById('hudScore').innerText = score.toLocaleString();
-const acc = totalNotes > 0 ? Math.round((perfectCount / totalNotes) * 100) : 100;
+var acc = totalNotes > 0 ? Math.round((perfectCount / totalNotes) * 100) : 100;
 document.getElementById('hudAccuracy').innerText = acc + '%';
 
-const remaining = activeNotes.filter(function(n) { return !n.hit && !n.missed; });
+var remaining = activeNotes.filter(function(n) { return !n.hit && !n.missed; });
 if (remaining.length === 0 && elapsedTime > (activeNotes[activeNotes.length - 1].time + 2)) {
 endGame();
 return;
@@ -876,15 +860,15 @@ requestAnimationFrame(gameLoop);
 function renderGame(elapsedTime, judgmentY, speed) {
 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-const stageWidth = Math.min(500, canvas.width * 0.4);
-const stageLeft = (canvas.width - stageWidth) / 2;
-const laneWidth = stageWidth / 4;
+var stageWidth = Math.min(500, canvas.width * 0.4);
+var stageLeft = (canvas.width - stageWidth) / 2;
+var laneWidth = stageWidth / 4;
 
 ctx.fillStyle = 'rgba(17, 19, 31, 0.85)';
 ctx.fillRect(stageLeft, 0, stageWidth, canvas.height);
 
-for (let i = 0; i < 4; i++) {
-const x = stageLeft + i * laneWidth;
+for (var i = 0; i < 4; i++) {
+var x = stageLeft + i * laneWidth;
 if (KEY_STATE[i]) {
 ctx.fillStyle = 'rgba(0, 242, 254, 0.15)';
 ctx.fillRect(x, 0, laneWidth, canvas.height);
@@ -903,13 +887,12 @@ ctx.lineTo(stageLeft + stageWidth, judgmentY);
 ctx.stroke();
 ctx.shadowBlur = 0;
 
-// 브라우저 렌더링 호환성 개선 (roundRect 폴리필 대체)
 activeNotes.forEach(function(note) {
 if (!note.hit && !note.missed) {
-const noteY = judgmentY - (note.time - elapsedTime) * speed;
+var noteY = judgmentY - (note.time - elapsedTime) * speed;
 if (noteY > -50 && noteY < canvas.height + 50) {
-const x = stageLeft + note.lane * laneWidth + 6;
-const w = laneWidth - 12;
+var nx = stageLeft + note.lane * laneWidth + 6;
+var nw = laneWidth - 12;
 
 ctx.fillStyle = LANE_COLORS[note.lane];
 ctx.shadowColor = LANE_COLORS[note.lane];
@@ -917,28 +900,28 @@ ctx.shadowBlur = 10;
 
 if (typeof ctx.roundRect === 'function') {
 ctx.beginPath();
-ctx.roundRect(x, noteY - 10, w, 20, 6);
+ctx.roundRect(nx, noteY - 10, nw, 20, 6);
 ctx.fill();
 } else {
-ctx.fillRect(x, noteY - 10, w, 20);
+ctx.fillRect(nx, noteY - 10, nw, 20);
 }
 ctx.shadowBlur = 0;
 }
 }
 });
 
-for (let i = 0; i < 4; i++) {
-const x = stageLeft + i * laneWidth;
-if (KEY_STATE[i]) {
-ctx.fillStyle = LANE_COLORS[i];
+for (var j = 0; j < 4; j++) {
+var kx = stageLeft + j * laneWidth;
+if (KEY_STATE[j]) {
+ctx.fillStyle = LANE_COLORS[j];
 ctx.globalAlpha = 0.5;
-ctx.fillRect(x + 2, judgmentY, laneWidth - 4, canvas.height - judgmentY);
+ctx.fillRect(kx + 2, judgmentY, laneWidth - 4, canvas.height - judgmentY);
 ctx.globalAlpha = 1.0;
 }
 ctx.fillStyle = '#ffffff';
 ctx.font = 'bold 22px Arial';
 ctx.textAlign = 'center';
-ctx.fillText(LANE_NAMES[i], x + laneWidth / 2, canvas.height - 40);
+ctx.fillText(LANE_NAMES[j], kx + laneWidth / 2, canvas.height - 40);
 }
 
 if (judgmentTimer > 0) {
@@ -957,7 +940,7 @@ ctx.fillText(combo + ' COMBO', canvas.width / 2, judgmentY - 40);
 }
 
 window.addEventListener('keydown', function(e) {
-const idx = LANE_KEYS.indexOf(e.code);
+var idx = LANE_KEYS.indexOf(e.code);
 if (idx !== -1 && !KEY_STATE[idx]) {
 KEY_STATE[idx] = true;
 if (isPlaying) processHit(idx);
@@ -965,18 +948,18 @@ if (isPlaying) processHit(idx);
 });
 
 window.addEventListener('keyup', function(e) {
-const idx = LANE_KEYS.indexOf(e.code);
+var idx = LANE_KEYS.indexOf(e.code);
 if (idx !== -1) KEY_STATE[idx] = false;
 });
 
 function processHit(lane) {
-const currentTime = (performance.now() - startTime) / 1000;
-let target = null;
-let minDiff = Infinity;
+var currentTime = (performance.now() - startTime) / 1000;
+var target = null;
+var minDiff = Infinity;
 
 activeNotes.forEach(function(note) {
 if (note.lane === lane && !note.hit && !note.missed) {
-const diff = Math.abs(note.time - currentTime);
+var diff = Math.abs(note.time - currentTime);
 if (diff < minDiff) {
 minDiff = diff;
 target = note;
@@ -1017,11 +1000,11 @@ function endGame() {
 isPlaying = false;
 stopAudio();
 
-const track = TRACKS[currentTrackIndex];
+var track = TRACKS[currentTrackIndex];
 document.getElementById('resultSongInfo').innerText = track.title + ' [' + selectedDiff.name + ']';
 document.getElementById('resScore').innerText = score.toLocaleString();
 document.getElementById('resCombo').innerText = maxCombo;
-const acc = totalNotes > 0 ? (perfectCount / totalNotes * 100).toFixed(1) : 100;
+var acc = totalNotes > 0 ? (perfectCount / totalNotes * 100).toFixed(1) : 100;
 document.getElementById('resAccuracy').innerText = acc + '%';
 
 saveAndRenderLeaderboard(track.id, score, maxCombo);
@@ -1029,7 +1012,7 @@ switchScreen('resultScreen');
 }
 
 async function saveAndRenderLeaderboard(songId, finalScore, maxCombo) {
-const rows = document.getElementById('leaderboardRows');
+var rows = document.getElementById('leaderboardRows');
 rows.innerHTML = '<tr><td colspan="4">Loading Leaderboard...</td></tr>';
 
 if (supabaseClient) {
@@ -1041,7 +1024,7 @@ score: finalScore,
 max_combo: maxCombo
 }]);
 
-const res = await supabaseClient
+var res = await supabaseClient
 .from('top10_leaderboard')
 .select('*')
 .eq('song_id', songId)
@@ -1056,7 +1039,7 @@ console.error('Supabase Sync Error:', e);
 }
 }
 
-const dummyData = [
+var dummyData = [
 { user_name: 'ProRhythm', score: finalScore + 5200, max_combo: maxCombo + 10 },
 { user_name: currentUser, score: finalScore, max_combo: maxCombo },
 { user_name: 'BeatMaster', score: Math.max(0, finalScore - 3000), max_combo: Math.max(0, maxCombo - 15) }
@@ -1066,14 +1049,14 @@ renderLeaderboardTable(dummyData);
 }
 
 function renderLeaderboardTable(data) {
-const rows = document.getElementById('leaderboardRows');
+var rows = document.getElementById('leaderboardRows');
 rows.innerHTML = '';
 
 data.forEach(function(item, idx) {
-const tr = document.createElement('tr');
+var tr = document.createElement('tr');
 if (item.user_name === currentUser) tr.className = 'highlight';
 
-const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
+var rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
 
 tr.innerHTML =
 '<td><span class="rank-badge ' + rankClass + '">' + (idx + 1) + '</span></td>' +
