@@ -645,9 +645,34 @@ switchScreen('difficultyScreen');
 renderDifficulties();
 }
 
-function renderCarousel() {
-const trackEl = document.getElementById('carouselTrack');
-trackEl.innerHTML = '';
+    function renderCarousel() {
+        const trackEl = document.getElementById('carouselTrack');
+        trackEl.innerHTML = '';
+
+        TRACKS.forEach((track, idx) => {
+            const card = document.createElement('div');
+            card.className = 'song-card' + (idx === currentTrackIndex ? ' active' : '');
+            card.onclick = function() {
+                currentTrackIndex = idx;
+                updateCarousel();
+            };
+
+            // 백틱(`)을 사용한 템플릿 리터럴 구문 정제
+            card.innerHTML = 
+                '<div class="album-art">' +
+                    '<i class="fa-solid ' + track.icon + '"></i>' +
+                '</div>' +
+                '<div class="song-info">' +
+                    '<div class="song-title">' + track.title + '</div>' +
+                    '<div class="song-genre">' + track.genre + '</div>' +
+                    '<div class="song-bpm">' + track.bpm + ' BPM</div>' +
+                '</div>';
+
+            trackEl.appendChild(card);
+        });
+
+        updateCarousel();
+    }
 
 TRACKS.forEach((track, idx) => {
 const card = document.createElement('div');
