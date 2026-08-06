@@ -851,61 +851,62 @@ canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvas);
 
-    // 🔥 AbortError 완벽 차단용 게임 시작 함수
-    function startGame() {
-        // 1. 기존 오디오가 있다면 확실하게 일시정지 및 초기화
-        if (audioElement) {
-            try {
-                audioElement.pause();
-                audioElement.currentTime = 0;
-            } catch(e) {}
-        }
+// 🔥 오디오 Preloading 및 동기화 처리된 startGame
+function startGame() {
+stopAudio();
 
-        // 2. 게임 전용 새 오디오 인스턴스 생성 (미리듣기 객체와 완전 분리)
-        audioElement = new Audio();
-        
-        var track = TRACKS[currentTrackIndex];
-        audioElement.src = track.audioUrl;
-        audioElement.volume = 0.8;
-        audioElement.preload = 'auto';
+var loadingOverlay = document.getElementById('loadingOverlay');
+loadingOverlay.classList.add('active');
 
-        switchScreen('gameScreen');
-        resizeCanvas();
+var track = TRACKS[currentTrackIndex];
 
-        document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
-        document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
+// 오디오 객체 새로 준비
+audioElement.src = track.audioUrl;
+audioElement.currentTime = 0;
+audioElement.volume = 0.8;
+audioElement.load();
 
-        score = 0; combo = 0; maxCombo = 0; perfectCount = 0; totalNotes = 0; lastJudgment = '';
-        activeNotes = generateChart(track.bpm, 90);
+var isStarted = false;
 
-        // 3. 비동기 play 충돌 방지 및 예외 안전망 적용
-        var playPromise = audioElement.play();
-        if (playPromise !== undefined) {
-            playPromise.then(function() {
-                console.log('🔊 게임 음원 정상 출력 시작!');
-            }).catch(function(e) {
-                // 만약 또다시 Interrupt(AbortError)가 발생하면 0.1초 뒤에 부드럽게 재시도
-                if (e.name === 'AbortError') {
-                    setTimeout(function() {
-                        audioElement.play().catch(function(err) {
-                            console.warn('재시도 중 오디오 차단됨:', err);
-                        });
-                    }, 100);
-                } else {
-                    console.error('오디오 재생 에러:', e);
-                }
-            });
-        }
+function runGameLoop() {
+if (isStarted) return;
+isStarted = true;
 
-        startTime = performance.now();
-        isPlaying = true;
-        requestAnimationFrame(gameLoop);
-    }
-        }
+loadingOverlay.classList.remove('active');
+switchScreen('gameScreen');
+resizeCanvas();
 
-        // 로딩 기다리지 않고 즉시 시작 시도 (브라우저 유저 클릭 직후 타이밍 활용)
-        beginGameplay();
-    }
+document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
+document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
+
+score = 0; combo = 0; maxCombo = 0; perfectCount = 0; totalNotes = 0; lastJudgment = '';
+activeNotes = generateChart(track.bpm, 90);
+
+// 준비 완료 후 음원 재생과 타임라인 시작을 동기화
+var p = audioElement.play();
+if (p !== undefined) {
+p.catch(function(e) { console.warn('Game Audio Play Error:', e); });
+}
+
+startTime = performance.now();
+isPlaying = true;
+requestAnimationFrame(gameLoop);
+}
+
+// 브라우저가 음원 데이터를 버퍼링 완료했을 때 콜백 실행
+audioElement.oncanplaythrough = function() {
+audioElement.oncanplaythrough = null;
+runGameLoop();
+};
+
+// 타임아웃 예외 처리 (네트워크가 지연되어도 최대 1.5초 후에는 게임 강제 시작)
+setTimeout(function() {
+if (!isStarted) {
+audioElement.oncanplaythrough = null;
+runGameLoop();
+}
+}, 1500);
+}
 
 function generateChart(bpm, durationSec) {
 var notes = [];
