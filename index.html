@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- FontAwesome Icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- Favicon 경고 방지 -->
+<!-- Favicon 404 경고 방지 -->
 <link rel="icon" href="data:,">
 <style>
 * {
@@ -349,41 +349,6 @@ font-weight: 800;
 color: #00f2fe;
 }
 
-/* 🔥 게임 로딩 전용 오버레이 UI */
-.loading-overlay {
-position: absolute;
-top: 0;
-left: 0;
-width: 100vw;
-height: 100vh;
-background: rgba(8, 9, 13, 0.95);
-display: none;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-z-index: 100;
-backdrop-filter: blur(10px);
-}
-
-.loading-overlay.active {
-display: flex;
-}
-
-.spinner {
-width: 60px;
-height: 60px;
-border: 5px solid rgba(0, 242, 254, 0.2);
-border-top: 5px solid #00f2fe;
-border-radius: 50%;
-animation: spin 1s linear infinite;
-margin-bottom: 20px;
-}
-
-@keyframes spin {
-0% { transform: rotate(0deg); }
-100% { transform: rotate(360deg); }
-}
-
 .result-box {
 background: rgba(26, 29, 46, 0.9);
 border: 1px solid rgba(0, 242, 254, 0.3);
@@ -537,13 +502,6 @@ font-weight: bold;
 <canvas id="gameCanvas"></canvas>
 </div>
 
-<!-- 🔥 오디오 로딩 팝업 레이어 -->
-<div class="loading-overlay" id="loadingOverlay">
-<div class="spinner"></div>
-<div style="font-size: 20px; font-weight: bold; color: #00f2fe; letter-spacing: 2px;">LOADING AUDIO...</div>
-<p style="color: #8f93a2; font-size: 13px; margin-top: 8px;">음원을 동기화하고 있습니다. 잠시만 기다려주세요.</p>
-</div>
-
 <!-- SCREEN 5: RESULT & LEADERBOARD -->
 <div class="screen" id="resultScreen">
 <div class="result-box">
@@ -588,8 +546,13 @@ font-weight: bold;
 </div>
 
 <script>
-const SUPABASE_URL = 'https://ijmmqmarbkkkssciagof.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_-Yw_iVRLOGF0W1CFj_v9SA_PLm301S6';
+// 🔥 Web Audio API 전용 글로벌 Context 객체
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+var currentSource = null;
+
+// Supabase 설정
+var SUPABASE_URL = 'https://ijmmqmarbkkkssciagof.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_-Yw_iVRLOGF0W1CFj_v9SA_PLm301S6';
 var supabaseClient = null;
 
 try {
@@ -661,7 +624,7 @@ var currentUser = 'BeatMaster';
 var currentTrackIndex = 0;
 var selectedDiff = null;
 
-var audioElement = new Audio();
+var audioElement = new Audio(); // 미리듣기용
 var currentAudioPromise = null;
 var previewTimer = null;
 
@@ -674,13 +637,10 @@ document.getElementById(screenId).classList.add('active');
 stopAudio();
 }
 
+// 🔥 유저 첫 클릭 시 오디오 엔진 깨우기
 function unlockAudio() {
-audioElement.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
-var p = audioElement.play();
-if (p !== undefined) {
-p.then(function() {
-audioElement.pause();
-}).catch(function(e) {});
+if (audioCtx && audioCtx.state === 'suspended') {
+audioCtx.resume();
 }
 }
 
@@ -777,22 +737,23 @@ stopAudio();
 }
 }
 
+// 🔥 Web Audio API 및 HTML5 Audio 통합 정지 함수
 function stopAudio() {
 if (previewTimer) {
 clearTimeout(previewTimer);
 previewTimer = null;
 }
 
-if (!audioElement) return;
-
-if (currentAudioPromise !== undefined && currentAudioPromise !== null) {
-currentAudioPromise.then(function() {
-audioElement.pause();
-}).catch(function() {});
-} else {
+if (currentSource) {
 try {
-audioElement.pause();
+currentSource.stop();
+currentSource.disconnect();
 } catch(e) {}
+currentSource = null;
+}
+
+if (audioElement) {
+try { audioElement.pause(); } catch(e) {}
 }
 }
 
@@ -851,61 +812,47 @@ canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvas);
 
-// 🔥 오디오 Preloading 및 동기화 처리된 startGame
+// 🔥 Web Audio API 기반 startGame (100% 음원 출력 보장)
 function startGame() {
 stopAudio();
+unlockAudio();
 
-var loadingOverlay = document.getElementById('loadingOverlay');
-loadingOverlay.classList.add('active');
-
-var track = TRACKS[currentTrackIndex];
-
-// 오디오 객체 새로 준비
-audioElement.src = track.audioUrl;
-audioElement.currentTime = 0;
-audioElement.volume = 0.8;
-audioElement.load();
-
-var isStarted = false;
-
-function runGameLoop() {
-if (isStarted) return;
-isStarted = true;
-
-loadingOverlay.classList.remove('active');
 switchScreen('gameScreen');
 resizeCanvas();
 
+var track = TRACKS[currentTrackIndex];
 document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
 document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
 
 score = 0; combo = 0; maxCombo = 0; perfectCount = 0; totalNotes = 0; lastJudgment = '';
 activeNotes = generateChart(track.bpm, 90);
 
-// 준비 완료 후 음원 재생과 타임라인 시작을 동기화
-var p = audioElement.play();
-if (p !== undefined) {
-p.catch(function(e) { console.warn('Game Audio Play Error:', e); });
+// Fetch로 오디오 바이너리를 로드하여 Web Audio API로 즉시 재생
+fetch(track.audioUrl)
+.then(function(response) {
+if (!response.ok) throw new Error('Audio file fetch failed');
+return response.arrayBuffer();
+})
+.then(function(arrayBuffer) {
+return audioCtx.decodeAudioData(arrayBuffer);
+})
+.then(function(audioBuffer) {
+if (currentSource) {
+try { currentSource.stop(); } catch(e) {}
 }
+currentSource = audioCtx.createBufferSource();
+currentSource.buffer = audioBuffer;
+currentSource.connect(audioCtx.destination);
+currentSource.start(0);
+console.log('🔊 Web Audio API로 음원 정상 재생!');
+})
+.catch(function(err) {
+console.error('오디오 디코딩 에러:', err);
+});
 
 startTime = performance.now();
 isPlaying = true;
 requestAnimationFrame(gameLoop);
-}
-
-// 브라우저가 음원 데이터를 버퍼링 완료했을 때 콜백 실행
-audioElement.oncanplaythrough = function() {
-audioElement.oncanplaythrough = null;
-runGameLoop();
-};
-
-// 타임아웃 예외 처리 (네트워크가 지연되어도 최대 1.5초 후에는 게임 강제 시작)
-setTimeout(function() {
-if (!isStarted) {
-audioElement.oncanplaythrough = null;
-runGameLoop();
-}
-}, 1500);
 }
 
 function generateChart(bpm, durationSec) {
