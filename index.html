@@ -715,42 +715,49 @@ updateCarousel();
 // 🔥 715번 줄 Autoplay 에러 보완 처리
   // 오디오 재생 상태 추적 변수 추가
     var currentAudioPromise = null;
+    var previewTimer = null; // 5초 후 자동 정지를 위한 타이머
 
     function playAudioPreview() {
-        stopAudio();
+        stopAudio(); // 기존 재생 및 타이머 정지
 
         var track = TRACKS[currentTrackIndex];
         if (!track || !track.audioUrl) return;
 
         audioElement.src = track.audioUrl;
-        audioElement.currentTime = 15; // 15초 지점 미리듣기
+        audioElement.currentTime = 0; // 🔥 15초 대신 '0초'부터 즉시 로딩 및 재생!
         audioElement.volume = 0.5;
 
-        // MP3 로딩이 완료되었을 때만 안전하게 재생 시도
         currentAudioPromise = audioElement.play();
 
         if (currentAudioPromise !== undefined) {
             currentAudioPromise.then(function() {
-                // 정상 재생 시작됨
+                // 🔥 정확히 5초(5000ms) 동안만 재생 후 오디오 정지
+                previewTimer = setTimeout(function() {
+                    stopAudio();
+                }, 5000);
             }).catch(function(e) {
-                // 브라우저 차단 및 미디어 로딩 미완료 에러 무소음 처리
+                // 빠르게 곡을 넘길 때 발생하는 AbortError 등의 무의미한 콘솔 경고 무시
                 if (e.name !== 'AbortError') {
-                    console.warn('Preview Audio Playback Error:', e.message);
+                    console.warn('Preview playback skipped:', e.message);
                 }
             });
         }
     }
 
     function stopAudio() {
+        // 기존 5초 자동 정지 타이머 해제
+        if (previewTimer) {
+            clearTimeout(previewTimer);
+            previewTimer = null;
+        }
+
         if (!audioElement) return;
 
-        // 이전 재생 Promise가 진행 중이라면 안전하게 대기 후 일시정지
+        // 비동기 Promise 충돌 방지 처리
         if (currentAudioPromise !== undefined && currentAudioPromise !== null) {
             currentAudioPromise.then(function() {
                 audioElement.pause();
-            }).catch(function() {
-                // 에러 무시
-            });
+            }).catch(function() {});
         } else {
             try {
                 audioElement.pause();
