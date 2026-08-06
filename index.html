@@ -715,37 +715,49 @@ updateCarousel();
 // 🔥 715번 줄 Autoplay 에러 보완 처리
   // 오디오 재생 상태 추적 변수 추가
     var currentAudioPromise = null;
-    var previewTimer = null; // 5초 후 자동 정지를 위한 타이머
+    var previewTimer = null;
 
+    // 🔥 브라우저 오디오 권한 잠금 해제 (ENTER GAME 클릭 시 실행)
+    function unlockAudio() {
+        audioElement.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+        var p = audioElement.play();
+        if (p !== undefined) {
+            p.then(function() {
+                audioElement.pause();
+            }).catch(function(e) {
+                // 첫 클릭 전이라 실패해도 무시
+            });
+        }
+    }
+
+    // 🔥 안전한 미리듣기 함수
     function playAudioPreview() {
-        stopAudio(); // 기존 재생 및 타이머 정지
+        stopAudio();
 
         var track = TRACKS[currentTrackIndex];
         if (!track || !track.audioUrl) return;
 
         audioElement.src = track.audioUrl;
-        audioElement.currentTime = 0; // 🔥 15초 대신 '0초'부터 즉시 로딩 및 재생!
+        audioElement.currentTime = 0; // 0초부터 가볍게 로딩
         audioElement.volume = 0.5;
 
         currentAudioPromise = audioElement.play();
 
         if (currentAudioPromise !== undefined) {
             currentAudioPromise.then(function() {
-                // 🔥 정확히 5초(5000ms) 동안만 재생 후 오디오 정지
+                // 재생 성공 시 5초 후 자동 정지
                 previewTimer = setTimeout(function() {
                     stopAudio();
                 }, 5000);
             }).catch(function(e) {
-                // 빠르게 곡을 넘길 때 발생하는 AbortError 등의 무의미한 콘솔 경고 무시
-                if (e.name !== 'AbortError') {
-                    console.warn('Preview playback skipped:', e.message);
-                }
+                // Autoplay 차단(NotAllowedError) 및 이전 곡 취소(AbortError)를 
+                // 콘솔 에러 없이 정숙하게 넘어감
             });
         }
     }
 
+    // 🔥 안전한 정지 함수
     function stopAudio() {
-        // 기존 5초 자동 정지 타이머 해제
         if (previewTimer) {
             clearTimeout(previewTimer);
             previewTimer = null;
@@ -753,7 +765,6 @@ updateCarousel();
 
         if (!audioElement) return;
 
-        // 비동기 Promise 충돌 방지 처리
         if (currentAudioPromise !== undefined && currentAudioPromise !== null) {
             currentAudioPromise.then(function() {
                 audioElement.pause();
@@ -821,38 +832,34 @@ canvas.height = window.innerHeight;
 window.addEventListener('resize', resizeCanvas);
 
 // 🔥 802번 줄 인게임 본음원 Autoplay 에러 보완 처리
-function startGame() {
-switchScreen('gameScreen');
-resizeCanvas();
+    function startGame() {
+        switchScreen('gameScreen');
+        resizeCanvas();
 
-var track = TRACKS[currentTrackIndex];
-document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
-document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
+        var track = TRACKS[currentTrackIndex];
+        document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
+        document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
 
-score = 0;
-combo = 0;
-maxCombo = 0;
-perfectCount = 0;
-totalNotes = 0;
-lastJudgment = '';
+        // 변수 초기화
+        score = 0; combo = 0; maxCombo = 0; perfectCount = 0; totalNotes = 0; lastJudgment = '';
+        activeNotes = generateChart(track.bpm, 90);
 
-activeNotes = generateChart(track.bpm, 90);
+        // 🔥 음원 세팅 및 즉시 재생 시도
+        audioElement.src = track.audioUrl;
+        audioElement.currentTime = 0;
+        audioElement.volume = 0.8;
 
-audioElement.src = track.audioUrl;
-audioElement.currentTime = 0;
-audioElement.volume = 0.8;
+        var playPromise = audioElement.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(function(e) {
+                console.warn('Game sound waiting for user action:', e.message);
+            });
+        }
 
-var playPromise = audioElement.play();
-if (playPromise !== undefined) {
-playPromise.catch(function(e) {
-console.warn('Game Audio Autoplay Blocked:', e.message);
-});
-}
-
-startTime = performance.now();
-isPlaying = true;
-requestAnimationFrame(gameLoop);
-}
+        startTime = performance.now();
+        isPlaying = true;
+        requestAnimationFrame(gameLoop);
+    }
 
 function generateChart(bpm, durationSec) {
 var notes = [];
