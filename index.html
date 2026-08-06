@@ -713,28 +713,50 @@ updateCarousel();
 }
 
 // 🔥 715번 줄 Autoplay 에러 보완 처리
-function playAudioPreview() {
-stopAudio();
-var track = TRACKS[currentTrackIndex];
-audioElement.src = track.audioUrl;
-audioElement.currentTime = 15;
-audioElement.volume = 0.5;
+  // 오디오 재생 상태 추적 변수 추가
+    var currentAudioPromise = null;
 
-var playPromise = audioElement.play();
-if (playPromise !== undefined) {
-playPromise.catch(function(e) {
-console.warn('Preview Audio Autoplay Blocked:', e.message);
-});
-}
-}
+    function playAudioPreview() {
+        stopAudio();
 
-function stopAudio() {
-if (audioElement) {
-try {
-audioElement.pause();
-} catch(e) {}
-}
-}
+        var track = TRACKS[currentTrackIndex];
+        if (!track || !track.audioUrl) return;
+
+        audioElement.src = track.audioUrl;
+        audioElement.currentTime = 15; // 15초 지점 미리듣기
+        audioElement.volume = 0.5;
+
+        // MP3 로딩이 완료되었을 때만 안전하게 재생 시도
+        currentAudioPromise = audioElement.play();
+
+        if (currentAudioPromise !== undefined) {
+            currentAudioPromise.then(function() {
+                // 정상 재생 시작됨
+            }).catch(function(e) {
+                // 브라우저 차단 및 미디어 로딩 미완료 에러 무소음 처리
+                if (e.name !== 'AbortError') {
+                    console.warn('Preview Audio Playback Error:', e.message);
+                }
+            });
+        }
+    }
+
+    function stopAudio() {
+        if (!audioElement) return;
+
+        // 이전 재생 Promise가 진행 중이라면 안전하게 대기 후 일시정지
+        if (currentAudioPromise !== undefined && currentAudioPromise !== null) {
+            currentAudioPromise.then(function() {
+                audioElement.pause();
+            }).catch(function() {
+                // 에러 무시
+            });
+        } else {
+            try {
+                audioElement.pause();
+            } catch(e) {}
+        }
+    }
 
 function renderDifficulties() {
 var track = TRACKS[currentTrackIndex];
