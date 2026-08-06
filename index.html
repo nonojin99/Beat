@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>BEATDROP - Web Rhythm Game</title>
 <!-- Supabase JS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -106,12 +106,84 @@ color: #00f2fe;
 .login-box {
 background: rgba(26, 29, 46, 0.8);
 border: 1px solid rgba(0, 242, 254, 0.2);
-padding: 50px 40px;
+padding: 45px 40px;
 border-radius: 20px;
 backdrop-filter: blur(15px);
 box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
 text-align: center;
-width: 420px;
+width: 460px;
+}
+
+.section-label {
+font-size: 11px;
+font-weight: 800;
+color: #8f93a2;
+letter-spacing: 2px;
+text-transform: uppercase;
+text-align: left;
+margin-bottom: 10px;
+}
+
+.mode-select {
+display: flex;
+gap: 14px;
+margin-bottom: 28px;
+}
+
+.mode-card {
+flex: 1;
+background: rgba(13, 15, 23, 0.9);
+border: 2px solid #2e3440;
+border-radius: 14px;
+padding: 16px 10px;
+cursor: pointer;
+transition: all 0.25s ease;
+}
+
+.mode-card:hover {
+border-color: rgba(0, 242, 254, 0.5);
+transform: translateY(-2px);
+}
+
+.mode-card.selected {
+border-color: #00f2fe;
+background: rgba(0, 242, 254, 0.1);
+box-shadow: 0 0 18px rgba(0, 242, 254, 0.25);
+}
+
+.mode-card .mode-name {
+font-size: 26px;
+font-weight: 900;
+color: #ffffff;
+letter-spacing: 1px;
+}
+
+.mode-card.selected .mode-name { color: #00f2fe; }
+
+.mode-card .mode-keys {
+font-size: 12px;
+font-weight: 700;
+color: #8f93a2;
+letter-spacing: 3px;
+margin-top: 6px;
+}
+
+.mode-card .mode-desc {
+font-size: 11px;
+color: #5f6577;
+margin-top: 4px;
+}
+
+.mode-badge {
+display: inline-block;
+padding: 4px 14px;
+border-radius: 12px;
+background: rgba(0, 242, 254, 0.15);
+border: 1px solid rgba(0, 242, 254, 0.4);
+color: #00f2fe;
+font-size: 12px;
+font-weight: 800;
+letter-spacing: 1px;
 }
 
 .login-box p {
@@ -436,6 +508,164 @@ font-weight: bold;
 .rank-1 { background: #ffbe0b; color: #000; }
 .rank-2 { background: #e0e0e0; color: #000; }
 .rank-3 { background: #cd7f32; color: #000; }
+
+/* ── 게임 화면 오버레이 ───────────────────────────── */
+#gameCanvas {
+touch-action: none;
+}
+
+.loading-overlay {
+position: absolute;
+top: 0; left: 0;
+width: 100%; height: 100%;
+background: rgba(8, 9, 13, 0.92);
+display: none;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+z-index: 30;
+}
+
+.loading-overlay.show { display: flex; }
+
+.loading-spinner {
+width: 54px;
+height: 54px;
+border: 4px solid rgba(0, 242, 254, 0.15);
+border-top-color: #00f2fe;
+border-radius: 50%;
+animation: spin 0.8s linear infinite;
+margin-bottom: 20px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+font-size: 15px;
+color: #8f93a2;
+letter-spacing: 2px;
+font-weight: 700;
+text-transform: uppercase;
+}
+
+.quit-btn {
+position: absolute;
+top: 20px;
+left: 50%;
+transform: translateX(-50%);
+margin-top: 78px;
+background: rgba(13, 15, 23, 0.8);
+border: 1px solid rgba(255, 255, 255, 0.15);
+color: #8f93a2;
+font-size: 12px;
+font-weight: 700;
+padding: 8px 18px;
+border-radius: 16px;
+cursor: pointer;
+z-index: 20;
+letter-spacing: 1px;
+}
+
+.quit-btn:hover { color: #ff0055; border-color: #ff0055; }
+
+.judge-breakdown {
+display: flex;
+justify-content: space-around;
+width: 100%;
+margin-bottom: 20px;
+font-size: 13px;
+}
+
+.judge-breakdown div { text-align: center; }
+.judge-breakdown .jb-label { font-size: 10px; color: #8f93a2; letter-spacing: 1px; }
+.judge-breakdown .jb-val { font-size: 18px; font-weight: 800; margin-top: 2px; }
+
+.diff-nps {
+font-size: 11px;
+color: #5f6577;
+margin-top: 2px;
+}
+
+.lb-notice {
+display: none;
+width: 100%;
+font-size: 12px;
+padding: 8px 12px;
+border-radius: 8px;
+margin-bottom: 10px;
+background: rgba(255, 0, 85, 0.12);
+border: 1px solid rgba(255, 0, 85, 0.35);
+color: #ff6b95;
+text-align: left;
+}
+
+.lb-notice.show { display: block; }
+
+/* ── 모바일 / 좁은 화면 대응 ───────────────────────── */
+@media (max-width: 860px) {
+.game-title { font-size: 42px; }
+
+.login-box {
+width: 100%;
+max-width: 400px;
+padding: 32px 24px;
+}
+
+.song-select-header { top: 20px; }
+.song-select-header .game-title { font-size: 26px !important; }
+#difficultyScreen .game-title { font-size: 26px !important; }
+#difficultyScreen > p { padding: 0 16px; text-align: center; }
+
+/* 인라인 font-size가 있어 letter-spacing만으로도 넘칠 수 있으므로 여백 확보 */
+.game-title { letter-spacing: 2px; padding: 0 12px; text-align: center; }
+
+.carousel-container { height: 340px; }
+.carousel-track { gap: 20px; }
+
+.song-card {
+width: 210px;
+height: 290px;
+padding: 18px;
+}
+
+.album-art { width: 130px; height: 130px; margin-bottom: 10px; }
+.song-title { font-size: 16px; }
+
+.carousel-btn { width: 46px; height: 46px; font-size: 18px; }
+.carousel-btn.left { left: 8px; }
+.carousel-btn.right { right: 8px; }
+
+.song-select-footer { bottom: 24px; }
+
+.diff-container {
+gap: 14px;
+margin: 24px 0;
+flex-wrap: wrap;
+justify-content: center;
+max-width: 92vw;
+}
+
+.diff-card { width: 140px; height: 190px; padding: 16px; }
+.diff-card .diff-badge { font-size: 17px; }
+
+.result-box { width: 92vw; padding: 24px 18px; }
+.result-box .game-title { font-size: 28px !important; }
+.result-stats { padding: 14px; margin: 16px 0; }
+.result-stat-item .val { font-size: 19px; }
+
+.hud-overlay { top: 10px; left: 12px; right: 12px; }
+.hud-box { padding: 8px 14px; }
+.hud-val { font-size: 20px; }
+.quit-btn { margin-top: 62px; }
+
+.btn-primary { padding: 14px 30px; font-size: 16px; }
+}
+
+@media (max-width: 860px) {
+.mode-card { padding: 14px 6px; }
+.mode-card .mode-name { font-size: 21px; }
+.mode-card .mode-keys { letter-spacing: 1.5px; }
+}
 </style>
 </head>
 <body>
@@ -445,8 +675,23 @@ font-weight: bold;
 <div class="game-title">BEATDROP</div>
 <div class="login-box">
 <h2>PLAYER PROFILE</h2>
-<p>리더보드에 등록할 닉네임을 입력하세요</p>
+<p>리더보드에 등록할 닉네임과 키 모드를 선택하세요</p>
 <input type="text" id="inputUserNickname" class="input-nickname" placeholder="NICKNAME" maxlength="12" value="BeatMaster">
+
+<div class="section-label">Key Mode</div>
+<div class="mode-select">
+<div class="mode-card selected" id="modeCard4" onclick="selectKeyMode(4)">
+<div class="mode-name">4 KEY</div>
+<div class="mode-keys">S D K L</div>
+<div class="mode-desc">기본 모드</div>
+</div>
+<div class="mode-card" id="modeCard6" onclick="selectKeyMode(6)">
+<div class="mode-name">6 KEY</div>
+<div class="mode-keys">S D F J K L</div>
+<div class="mode-desc">확장 모드</div>
+</div>
+</div>
+
 <button class="btn-primary" onclick="goToSongSelect()">ENTER GAME</button>
 </div>
 </div>
@@ -456,6 +701,7 @@ font-weight: bold;
 <div class="song-select-header">
 <div class="game-title" style="font-size: 36px; margin-bottom: 5px;">SELECT TRACK</div>
 <p style="color: #8f93a2; font-size: 14px;">좌우 화살표를 눌러 곡을 선택하세요</p>
+<div style="margin-top: 10px;"><span class="mode-badge" id="songModeBadge">4 KEY</span></div>
 </div>
 
 <button class="carousel-btn left" onclick="moveCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button>
@@ -474,6 +720,7 @@ font-weight: bold;
 <div class="screen" id="difficultyScreen">
 <div class="game-title" style="font-size: 36px; margin-bottom: 5px;">SELECT DIFFICULTY</div>
 <p style="color: #8f93a2; font-size: 14px;" id="diffSongTitle">Selected Track</p>
+<div style="margin-top: 10px;"><span class="mode-badge" id="diffModeBadge">4 KEY</span></div>
 
 <div class="diff-container" id="diffContainer"></div>
 
@@ -499,7 +746,12 @@ font-weight: bold;
 <div class="hud-val" id="hudAccuracy">100%</div>
 </div>
 </div>
+<button class="quit-btn" onclick="quitGame()">ESC · QUIT</button>
 <canvas id="gameCanvas"></canvas>
+<div class="loading-overlay" id="gameLoading">
+<div class="loading-spinner"></div>
+<div class="loading-text" id="gameLoadingText">Loading Track...</div>
+</div>
 </div>
 
 <!-- SCREEN 5: RESULT & LEADERBOARD -->
@@ -523,9 +775,17 @@ font-weight: bold;
 </div>
 </div>
 
+<div class="judge-breakdown">
+<div><div class="jb-label">PERFECT</div><div class="jb-val" style="color:#00f2fe;" id="resPerfect">0</div></div>
+<div><div class="jb-label">GREAT</div><div class="jb-val" style="color:#ffbe0b;" id="resGreat">0</div></div>
+<div><div class="jb-label">GOOD</div><div class="jb-val" style="color:#8f93a2;" id="resGood">0</div></div>
+<div><div class="jb-label">MISS</div><div class="jb-val" style="color:#ff0055;" id="resMiss">0</div></div>
+</div>
+
 <div style="width: 100%; text-align: left; font-size: 14px; font-weight: bold; color: #8f93a2; margin-bottom: 10px;">
 <i class="fa-solid fa-trophy" style="color: #ffbe0b;"></i> TOP LEADERBOARD
 </div>
+<div class="lb-notice" id="lbNotice"></div>
 <table class="leaderboard-table">
 <thead>
 <tr>
@@ -564,6 +824,10 @@ font-weight: bold;
         console.warn('Supabase initialization bypassed:', err);
     }
 
+    // 한 스테이지 길이(초). 음원은 3분대지만 플레이는 90초로 고정.
+    var STAGE_DURATION = 90;
+    var CHART_LEAD_IN = 2.0;   // 첫 노트까지의 여유 시간
+
     var TRACKS = [
         {
             id: 'neon_city_night',
@@ -574,8 +838,8 @@ font-weight: bold;
             coverUrl: 'assets/images/neon_city_night.jpg',
             icon: 'fa-city',
             difficulties: [
-                { name: 'EASY', level: 1, class: 'diff-easy', speed: 380 },
-                { name: 'NORMAL', level: 3, class: 'diff-normal', speed: 450 }
+                { name: 'EASY', class: 'diff-easy', speed: 380 },
+                { name: 'NORMAL', class: 'diff-normal', speed: 450 }
             ]
         },
         {
@@ -587,9 +851,9 @@ font-weight: bold;
             coverUrl: 'assets/images/cybernetic_pulse.jpg',
             icon: 'fa-bolt',
             difficulties: [
-                { name: 'EASY', level: 2, class: 'diff-easy', speed: 400 },
-                { name: 'NORMAL', level: 4, class: 'diff-normal', speed: 480 },
-                { name: 'HARD', level: 6, class: 'diff-hard', speed: 550 }
+                { name: 'EASY', class: 'diff-easy', speed: 400 },
+                { name: 'NORMAL', class: 'diff-normal', speed: 480 },
+                { name: 'HARD', class: 'diff-hard', speed: 550 }
             ]
         },
         {
@@ -601,9 +865,9 @@ font-weight: bold;
             coverUrl: 'assets/images/midnight_rush.jpg',
             icon: 'fa-compact-disc',
             difficulties: [
-                { name: 'NORMAL', level: 5, class: 'diff-normal', speed: 500 },
-                { name: 'HARD', level: 8, class: 'diff-hard', speed: 600 },
-                { name: 'EXPERT', level: 10, class: 'diff-expert', speed: 700 }
+                { name: 'NORMAL', class: 'diff-normal', speed: 500 },
+                { name: 'HARD', class: 'diff-hard', speed: 600 },
+                { name: 'EXPERT', class: 'diff-expert', speed: 700 }
             ]
         },
         {
@@ -615,19 +879,138 @@ font-weight: bold;
             coverUrl: 'assets/images/overdrive_heart.jpg',
             icon: 'fa-fire',
             difficulties: [
-                { name: 'HARD', level: 7, class: 'diff-hard', speed: 580 },
-                { name: 'EXPERT', level: 12, class: 'diff-expert', speed: 750 }
+                { name: 'HARD', class: 'diff-hard', speed: 580 },
+                { name: 'EXPERT', class: 'diff-expert', speed: 750 }
             ]
         }
     ];
+
+    // 난이도별 채보 파라미터
+    //   subDivision : 한 박을 몇 등분해서 노트를 놓을지
+    //   fillProb    : 정박이 아닌 자리에 노트가 놓일 확률
+    //   chord4/6    : 정박에서 동시치기(2노트)가 나올 확률
+    var DIFF_PARAMS = {
+        EASY:   { subDivision: 1, fillProb: 0.00, chord4: 0.00, chord6: 0.00 },
+        NORMAL: { subDivision: 2, fillProb: 0.50, chord4: 0.05, chord6: 0.15 },
+        HARD:   { subDivision: 4, fillProb: 0.45, chord4: 0.30, chord6: 0.40 },
+        EXPERT: { subDivision: 4, fillProb: 0.75, chord4: 0.45, chord6: 0.55 }
+    };
+
+    // 🎹 키 모드 설정 (4키 / 6키)
+    var KEY_MODES = {
+        4: {
+            keys:   ['KeyS', 'KeyD', 'KeyK', 'KeyL'],
+            names:  ['S', 'D', 'K', 'L'],
+            colors: ['#ff0055', '#00f2fe', '#00f2fe', '#ff0055']
+        },
+        6: {
+            keys:   ['KeyS', 'KeyD', 'KeyF', 'KeyJ', 'KeyK', 'KeyL'],
+            names:  ['S', 'D', 'F', 'J', 'K', 'L'],
+            colors: ['#ff0055', '#00f2fe', '#ffffff', '#ffffff', '#00f2fe', '#ff0055']
+        }
+    };
+
+    var keyMode = 4;
+    var LANE_COUNT = 4;
+    var LANE_KEYS = KEY_MODES[4].keys;
+    var LANE_NAMES = KEY_MODES[4].names;
+    var LANE_COLORS = KEY_MODES[4].colors;
+    var KEY_STATE = [false, false, false, false];
+
+    function applyKeyMode(mode) {
+        var cfg = KEY_MODES[mode] || KEY_MODES[4];
+        keyMode = KEY_MODES[mode] ? mode : 4;
+
+        LANE_KEYS = cfg.keys;
+        LANE_NAMES = cfg.names;
+        LANE_COLORS = cfg.colors;
+        LANE_COUNT = cfg.keys.length;
+
+        KEY_STATE = [];
+        for (var i = 0; i < LANE_COUNT; i++) KEY_STATE.push(false);
+
+        var card4 = document.getElementById('modeCard4');
+        var card6 = document.getElementById('modeCard6');
+        if (card4) card4.classList.toggle('selected', keyMode === 4);
+        if (card6) card6.classList.toggle('selected', keyMode === 6);
+
+        var label = keyMode + ' KEY';
+        var songBadge = document.getElementById('songModeBadge');
+        var diffBadge = document.getElementById('diffModeBadge');
+        if (songBadge) songBadge.innerText = label;
+        if (diffBadge) diffBadge.innerText = label;
+    }
+
+    function selectKeyMode(mode) {
+        if (isPlaying) return;
+        applyKeyMode(mode);
+        try { localStorage.setItem('beatdrop_key_mode', String(keyMode)); } catch (e) {}
+    }
 
     var currentUser = 'BeatMaster';
     var currentTrackIndex = 0;
     var selectedDiff = null;
 
-    var audioElement = new Audio(); // 미리듣기용
-    var currentAudioPromise = null;
+    // HTML 이스케이프 (리더보드 닉네임이 그대로 innerHTML에 들어가면 XSS)
+    function escapeHtml(str) {
+        return String(str == null ? '' : str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    /* ══════════════════════════════════════════════════
+       오디오 로딩 (미리듣기 / 게임 재생 공용 캐시)
+       ══════════════════════════════════════════════════ */
+
+    var previewElements = {};   // trackId -> Audio (한 번 방문한 곡만 캐시)
+    var bufferCache = {};       // audioUrl -> AudioBuffer (게임 재생용 디코딩 결과)
+    var bufferPromises = {};    // 중복 fetch 방지
+    var previewDebounce = null;
     var previewTimer = null;
+    var previewToken = 0;       // 오래된 재생 요청 무시용
+
+    function getPreviewElement(track) {
+        if (!previewElements[track.id]) {
+            var el = new Audio();
+            el.src = track.audioUrl;
+            el.preload = 'auto';
+            el.volume = 0.5;
+            previewElements[track.id] = el;
+        }
+        return previewElements[track.id];
+    }
+
+    // 디코딩된 AudioBuffer를 캐시. 같은 곡 재시도 시 즉시 시작된다.
+    function loadTrackBuffer(url) {
+        if (bufferCache[url]) return Promise.resolve(bufferCache[url]);
+        if (bufferPromises[url]) return bufferPromises[url];
+
+        bufferPromises[url] = fetch(url)
+            .then(function(response) {
+                if (!response.ok) throw new Error('Audio fetch failed: ' + response.status);
+                return response.arrayBuffer();
+            })
+            .then(function(arrayBuffer) {
+                return new Promise(function(resolve, reject) {
+                    // 콜백 형태로 호출해야 구형 Safari에서도 동작
+                    audioCtx.decodeAudioData(arrayBuffer, resolve, reject);
+                });
+            })
+            .then(function(buffer) {
+                bufferCache[url] = buffer;
+                delete bufferPromises[url];
+                return buffer;
+            })
+            .catch(function(err) {
+                delete bufferPromises[url];
+                throw err;
+            });
+
+        return bufferPromises[url];
+    }
 
     function switchScreen(screenId) {
         var screens = document.querySelectorAll('.screen');
@@ -647,7 +1030,7 @@ font-weight: bold;
     function goToSongSelect() {
         var input = document.getElementById('inputUserNickname').value.trim();
         if (input) currentUser = input;
-        
+
         unlockAudio();
 
         switchScreen('songSelectScreen');
@@ -658,6 +1041,9 @@ font-weight: bold;
     function goToDifficultySelect() {
         switchScreen('difficultyScreen');
         renderDifficulties();
+
+        // 난이도를 고르는 동안 미리 받아두면 START에서 기다릴 일이 없다
+        loadTrackBuffer(TRACKS[currentTrackIndex].audioUrl).catch(function() {});
     }
 
     function renderCarousel() {
@@ -682,9 +1068,9 @@ font-weight: bold;
 
             var songInfoDiv = document.createElement('div');
             songInfoDiv.className = 'song-info';
-            songInfoDiv.innerHTML = 
-                '<div class="song-title">' + track.title + '</div>' +
-                '<div class="song-genre">' + track.genre + '</div>' +
+            songInfoDiv.innerHTML =
+                '<div class="song-title">' + escapeHtml(track.title) + '</div>' +
+                '<div class="song-genre">' + escapeHtml(track.genre) + '</div>' +
                 '<div class="song-bpm">' + track.bpm + ' BPM</div>';
 
             card.appendChild(albumArtDiv);
@@ -697,7 +1083,14 @@ font-weight: bold;
 
     function updateCarousel() {
         var trackEl = document.getElementById('carouselTrack');
-        var offset = -currentTrackIndex * (280 + 40);
+        var sample = trackEl.querySelector('.song-card');
+        var cardWidth = sample ? sample.offsetWidth : 280;
+        var gap = parseFloat(getComputedStyle(trackEl).gap) || 40;
+
+        // 트랙 전체가 flex로 가운데 정렬되므로, 선택한 카드가 화면 중앙에 오도록
+        // 목록 중앙 기준으로 밀어준다
+        var center = (TRACKS.length - 1) / 2;
+        var offset = -(currentTrackIndex - center) * (cardWidth + gap);
         trackEl.style.transform = 'translateX(' + offset + 'px)';
 
         var cards = document.querySelectorAll('.song-card');
@@ -706,7 +1099,9 @@ font-weight: bold;
             else cards[i].classList.remove('active');
         }
 
-        playAudioPreview();
+        // 곡을 빠르게 넘길 때 매번 로드를 걸면 재생이 끊기므로 디바운스
+        if (previewDebounce) clearTimeout(previewDebounce);
+        previewDebounce = setTimeout(playAudioPreview, 250);
     }
 
     function moveCarousel(direction) {
@@ -722,18 +1117,18 @@ font-weight: bold;
         var track = TRACKS[currentTrackIndex];
         if (!track || !track.audioUrl) return;
 
-        audioElement.src = track.audioUrl;
-        audioElement.currentTime = 0;
-        audioElement.volume = 0.5;
+        var el = getPreviewElement(track);
+        var token = ++previewToken;
 
-        currentAudioPromise = audioElement.play();
+        try { el.currentTime = 0; } catch (e) {}
+        el.volume = 0.5;
 
-        if (currentAudioPromise !== undefined) {
-            currentAudioPromise.then(function() {
-                previewTimer = setTimeout(function() {
-                    stopAudio();
-                }, 5000);
-            }).catch(function(e) {});
+        var p = el.play();
+        if (p !== undefined) {
+            p.then(function() {
+                if (token !== previewToken) { el.pause(); return; }
+                previewTimer = setTimeout(function() { stopAudio(); }, 5000);
+            }).catch(function() { /* 자동재생 차단 / 중간에 곡 변경 */ });
         }
     }
 
@@ -742,31 +1137,41 @@ font-weight: bold;
             clearTimeout(previewTimer);
             previewTimer = null;
         }
+        previewToken++;
 
         if (currentSource) {
             try {
+                currentSource.onended = null;
                 currentSource.stop();
                 currentSource.disconnect();
-            } catch(e) {}
+            } catch (e) {}
             currentSource = null;
         }
 
-        if (audioElement) {
-            try { audioElement.pause(); } catch(e) {}
+        for (var id in previewElements) {
+            if (previewElements.hasOwnProperty(id)) {
+                try { previewElements[id].pause(); } catch (e) {}
+            }
         }
     }
 
     function renderDifficulties() {
         var track = TRACKS[currentTrackIndex];
-        document.getElementById('diffSongTitle').innerText = 'Selected Track: ' + track.title + ' (' + track.bpm + ' BPM)';
+        document.getElementById('diffSongTitle').innerText =
+            'Selected Track: ' + track.title + ' (' + track.bpm + ' BPM)';
 
         var container = document.getElementById('diffContainer');
         container.innerHTML = '';
 
-        var sortedDiffs = track.difficulties.slice().sort(function(a, b) { return a.level - b.level; });
-        selectedDiff = sortedDiffs[0];
+        // 실제 생성될 채보를 그대로 계산해서 레벨을 매긴다 (노트 밀도 × 낙하 속도)
+        var stats = track.difficulties.map(function(diff) {
+            return computeDiffStats(track, diff);
+        }).sort(function(a, b) { return a.level - b.level; });
 
-        sortedDiffs.forEach(function(diff, idx) {
+        selectedDiff = stats[0].diff;
+
+        stats.forEach(function(st, idx) {
+            var diff = st.diff;
             var card = document.createElement('div');
             card.className = 'diff-card' + (idx === 0 ? ' selected' : '');
             card.onclick = function() {
@@ -777,33 +1182,124 @@ font-weight: bold;
                 card.classList.add('selected');
                 selectedDiff = diff;
             };
-            card.innerHTML = 
+            card.innerHTML =
                 '<div class="diff-badge ' + diff.class + '">' + diff.name + '</div>' +
-                '<div style="font-size: 48px; font-weight: 900; color: #fff;">' + diff.level + '</div>' +
-                '<div style="font-size: 12px; color: #8f93a2;">SPEED: ' + diff.speed + '</div>';
+                '<div style="font-size: 48px; font-weight: 900; color: #fff;">' + st.level + '</div>' +
+                '<div style="font-size: 12px; color: #8f93a2;">' + st.noteCount + ' NOTES</div>' +
+                '<div class="diff-nps">' + st.nps.toFixed(1) + ' NPS · SPEED ' + diff.speed + '</div>';
             container.appendChild(card);
         });
     }
+
+    /* ══════════════════════════════════════════════════
+       채보 생성 — 시드 고정(같은 곡·난이도·키모드 = 항상 같은 채보)
+       ══════════════════════════════════════════════════ */
+
+    // 문자열 -> 32bit 시드
+    function hashSeed(str) {
+        var h = 2166136261;
+        for (var i = 0; i < str.length; i++) {
+            h ^= str.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+    }
+
+    // mulberry32 — 시드가 같으면 항상 같은 난수열
+    function makeRng(seed) {
+        var t = seed >>> 0;
+        return function() {
+            t = (t + 0x6D2B79F5) >>> 0;
+            var r = Math.imul(t ^ (t >>> 15), 1 | t);
+            r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+            return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+
+    function generateChart(track, diff, mode, durationSec) {
+        var params = DIFF_PARAMS[diff.name] || DIFF_PARAMS.NORMAL;
+        var laneCount = KEY_MODES[mode].keys.length;
+        var chordChance = (mode === 6) ? params.chord6 : params.chord4;
+
+        var rng = makeRng(hashSeed(track.id + '|' + diff.name + '|' + mode + 'K'));
+
+        var notes = [];
+        var beatInterval = 60 / track.bpm;
+        var stepTime = beatInterval / params.subDivision;
+        var totalSteps = Math.floor((durationSec - CHART_LEAD_IN) / stepTime);
+
+        var lastLane = -1;
+
+        for (var i = 0; i < totalSteps; i++) {
+            var time = parseFloat((CHART_LEAD_IN + (i * stepTime)).toFixed(3));
+            var isMainBeat = (i % params.subDivision === 0);
+
+            if (!isMainBeat && rng() >= params.fillProb) continue;
+
+            var lane = Math.floor(rng() * laneCount);
+            while (lane === lastLane && rng() > 0.2) {
+                lane = Math.floor(rng() * laneCount);
+            }
+            lastLane = lane;
+
+            notes.push({ time: time, lane: lane, hit: false, missed: false });
+
+            if (chordChance > 0 && isMainBeat && rng() < chordChance) {
+                var secondLane = (lane + 1 + Math.floor(rng() * (laneCount - 1))) % laneCount;
+                notes.push({ time: time, lane: secondLane, hit: false, missed: false });
+            }
+        }
+
+        return notes;
+    }
+
+    // 노트 밀도(NPS)와 낙하 속도로 정량 레벨 산출
+    function computeDiffStats(track, diff) {
+        var notes = generateChart(track, diff, keyMode, STAGE_DURATION);
+        var span = STAGE_DURATION - CHART_LEAD_IN;
+        var nps = notes.length / span;
+        var raw = Math.round(nps * 0.85 + (diff.speed - 380) / 140) - 1;
+
+        return {
+            diff: diff,
+            noteCount: notes.length,
+            nps: nps,
+            level: Math.max(1, Math.min(15, raw))
+        };
+    }
+
+    /* ══════════════════════════════════════════════════
+       게임 루프
+       ══════════════════════════════════════════════════ */
 
     var canvas = document.getElementById('gameCanvas');
     var ctx = canvas.getContext('2d');
 
     var isPlaying = false;
-    var startTime = 0;
     var activeNotes = [];
+    var chartEndTime = 0;
+    var gameLaunchId = 0;   // 로딩 중 화면을 벗어난 경우를 걸러내기 위한 토큰
+
+    // 게임 시계: 오디오가 재생 중이면 오디오 클럭을 그대로 쓴다(싱크 밀림 방지)
+    var useAudioClock = false;
+    var audioClockOrigin = 0;   // audioCtx.currentTime 기준 곡 시작 시각
+    var perfClockOrigin = 0;    // performance.now() 폴백용
 
     var score = 0;
     var combo = 0;
     var maxCombo = 0;
-    var perfectCount = 0;
     var totalNotes = 0;
+    var accPoints = 0;
+    var judgeCounts = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
     var lastJudgment = '';
     var judgmentTimer = 0;
 
-    var LANE_KEYS = ['KeyS', 'KeyD', 'KeyK', 'KeyL'];
-    var LANE_NAMES = ['S', 'D', 'K', 'L'];
-    var LANE_COLORS = ['#ff0055', '#00f2fe', '#00f2fe', '#ff0055'];
-    var KEY_STATE = [false, false, false, false];
+    var ACC_WEIGHT = { PERFECT: 1.0, GREAT: 0.7, GOOD: 0.3, MISS: 0.0 };
+
+    function getGameTime() {
+        if (useAudioClock) return audioCtx.currentTime - audioClockOrigin;
+        return (performance.now() - perfClockOrigin) / 1000;
+    }
 
     function resizeCanvas() {
         canvas.width = window.innerWidth;
@@ -811,120 +1307,107 @@ font-weight: bold;
     }
     window.addEventListener('resize', resizeCanvas);
 
+    function showLoading(show, text) {
+        var el = document.getElementById('gameLoading');
+        if (text) document.getElementById('gameLoadingText').innerText = text;
+        el.classList.toggle('show', !!show);
+    }
+
     function startGame() {
+        var track = TRACKS[currentTrackIndex];
+        if (!track) return;
+        if (!selectedDiff) selectedDiff = track.difficulties[0];
+
         stopAudio();
         unlockAudio();
+        isPlaying = false;
 
         switchScreen('gameScreen');
         resizeCanvas();
+        showLoading(true, 'Loading Track...');
 
-        var track = TRACKS[currentTrackIndex];
         document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
-        document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
+        document.getElementById('hudDiffInfo').innerText = selectedDiff.name + ' · ' + keyMode + 'K';
 
-        score = 0; combo = 0; maxCombo = 0; perfectCount = 0; totalNotes = 0; lastJudgment = '';
-        activeNotes = generateChart(track.bpm, 90);
+        score = 0; combo = 0; maxCombo = 0; totalNotes = 0; accPoints = 0;
+        judgeCounts = { PERFECT: 0, GREAT: 0, GOOD: 0, MISS: 0 };
+        lastJudgment = ''; judgmentTimer = 0;
+        document.getElementById('hudScore').innerText = '0';
+        document.getElementById('hudAccuracy').innerText = '100%';
 
-        fetch(track.audioUrl)
-            .then(function(response) {
-                if (!response.ok) throw new Error('Audio file fetch failed');
-                return response.arrayBuffer();
-            })
-            .then(function(arrayBuffer) {
-                return audioCtx.decodeAudioData(arrayBuffer);
-            })
+        var launchId = ++gameLaunchId;
+
+        loadTrackBuffer(track.audioUrl)
             .then(function(audioBuffer) {
+                if (launchId !== gameLaunchId) return;  // 그 사이 나갔거나 다시 시작함
+
+                var playable = Math.min(STAGE_DURATION, audioBuffer.duration);
+                activeNotes = generateChart(track, selectedDiff, keyMode, playable);
+
                 if (currentSource) {
-                    try { currentSource.stop(); } catch(e) {}
+                    try { currentSource.stop(); } catch (e) {}
                 }
                 currentSource = audioCtx.createBufferSource();
                 currentSource.buffer = audioBuffer;
                 currentSource.connect(audioCtx.destination);
-                currentSource.start(0);
-                console.log('🔊 Web Audio API로 음원 정상 재생!');
+
+                // 오디오 시작 시각과 게임 시계의 원점을 같은 값으로 맞춘다
+                var startAt = audioCtx.currentTime + 0.12;
+                currentSource.start(startAt, 0, playable);
+                audioClockOrigin = startAt;
+                useAudioClock = true;
+
+                beginPlay();
             })
             .catch(function(err) {
-                console.error('오디오 디코딩 에러:', err);
-            });
+                if (launchId !== gameLaunchId) return;
+                console.error('오디오 로딩 실패 - 무음으로 진행합니다:', err);
 
-        startTime = performance.now();
+                activeNotes = generateChart(track, selectedDiff, keyMode, STAGE_DURATION);
+                useAudioClock = false;
+                perfClockOrigin = performance.now();
+                beginPlay();
+            });
+    }
+
+    function beginPlay() {
+        if (!activeNotes.length) {
+            console.warn('생성된 노트가 없습니다.');
+            quitGame();
+            return;
+        }
+
+        chartEndTime = activeNotes[activeNotes.length - 1].time;
+        showLoading(false);
         isPlaying = true;
         requestAnimationFrame(gameLoop);
     }
 
-    // 🔥 정박 칼박자 채보 생성기 (보정 완)
-    function generateChart(bpm, durationSec) {
-        var notes = [];
-        var beatInterval = 60 / bpm; 
-        var currentTime = 2.0; 
-        
-        var diffName = selectedDiff ? selectedDiff.name : 'NORMAL';
-        
-        var subDivision = 1; 
-        if (diffName === 'NORMAL') subDivision = 2; 
-        if (diffName === 'HARD' || diffName === 'EXPERT') subDivision = 4;   
-
-        var stepTime = beatInterval / subDivision;
-        var totalSteps = Math.floor((durationSec - currentTime) / stepTime);
-
-        var lastLane = -1;
-        
-        for (var i = 0; i < totalSteps; i++) {
-            var time = parseFloat((currentTime + (i * stepTime)).toFixed(3));
-            var isMainBeat = (i % subDivision === 0);
-
-            if (isMainBeat || Math.random() < 0.6) {
-                var lane = Math.floor(Math.random() * 4);
-                while (lane === lastLane && Math.random() > 0.2) {
-                    lane = Math.floor(Math.random() * 4);
-                }
-                lastLane = lane;
-
-                notes.push({
-                    time: time,
-                    lane: lane,
-                    hit: false,
-                    missed: false
-                });
-
-                if ((diffName === 'HARD' || diffName === 'EXPERT') && isMainBeat && Math.random() < 0.35) {
-                    var secondLane = (lane + 1 + Math.floor(Math.random() * 3)) % 4;
-                    notes.push({
-                        time: time,
-                        lane: secondLane,
-                        hit: false,
-                        missed: false
-                    });
-                }
-            }
-        }
-
-        return notes;
-    }
-
-    function gameLoop(timestamp) {
+    function gameLoop() {
         if (!isPlaying) return;
 
-        var elapsedTime = (timestamp - startTime) / 1000;
+        var elapsedTime = getGameTime();
         var speed = selectedDiff.speed;
         var judgmentY = canvas.height - 120;
 
-        activeNotes.forEach(function(note) {
-            if (!note.hit && !note.missed) {
-                var noteY = judgmentY - (note.time - elapsedTime) * speed;
-                if (noteY > judgmentY + 80) {
-                    note.missed = true;
-                    handleJudgment('MISS');
-                }
+        var remaining = 0;
+        for (var i = 0; i < activeNotes.length; i++) {
+            var note = activeNotes[i];
+            if (note.hit || note.missed) continue;
+
+            var noteY = judgmentY - (note.time - elapsedTime) * speed;
+            if (noteY > judgmentY + 80) {
+                note.missed = true;
+                handleJudgment('MISS');
+            } else {
+                remaining++;
             }
-        });
+        }
 
         document.getElementById('hudScore').innerText = score.toLocaleString();
-        var acc = totalNotes > 0 ? Math.round((perfectCount / totalNotes) * 100) : 100;
-        document.getElementById('hudAccuracy').innerText = acc + '%';
+        document.getElementById('hudAccuracy').innerText = Math.round(getAccuracy()) + '%';
 
-        var remaining = activeNotes.filter(function(n) { return !n.hit && !n.missed; });
-        if (remaining.length === 0 && elapsedTime > (activeNotes[activeNotes.length - 1].time + 2)) {
+        if (remaining === 0 && elapsedTime > chartEndTime + 2) {
             endGame();
             return;
         }
@@ -933,17 +1416,22 @@ font-weight: bold;
         requestAnimationFrame(gameLoop);
     }
 
+    function getAccuracy() {
+        return totalNotes > 0 ? (accPoints / totalNotes) * 100 : 100;
+    }
+
     function renderGame(elapsedTime, judgmentY, speed) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        var stageWidth = Math.min(500, canvas.width * 0.4);
+        // 레인 수에 맞춰 스테이지 폭 계산 (4키 500px / 6키 750px, 좁은 화면은 축소)
+        var stageWidth = Math.min(LANE_COUNT * 125, canvas.width * 0.92);
         var stageLeft = (canvas.width - stageWidth) / 2;
-        var laneWidth = stageWidth / 4;
+        var laneWidth = stageWidth / LANE_COUNT;
 
         ctx.fillStyle = 'rgba(17, 19, 31, 0.85)';
         ctx.fillRect(stageLeft, 0, stageWidth, canvas.height);
 
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < LANE_COUNT; i++) {
             var x = stageLeft + i * laneWidth;
             if (KEY_STATE[i]) {
                 ctx.fillStyle = 'rgba(0, 242, 254, 0.15)';
@@ -963,17 +1451,18 @@ font-weight: bold;
         ctx.stroke();
         ctx.shadowBlur = 0;
 
+        var noteInset = Math.min(6, laneWidth * 0.08);
         activeNotes.forEach(function(note) {
             if (!note.hit && !note.missed) {
                 var noteY = judgmentY - (note.time - elapsedTime) * speed;
                 if (noteY > -50 && noteY < canvas.height + 50) {
-                    var nx = stageLeft + note.lane * laneWidth + 6;
-                    var nw = laneWidth - 12;
+                    var nx = stageLeft + note.lane * laneWidth + noteInset;
+                    var nw = laneWidth - noteInset * 2;
 
                     ctx.fillStyle = LANE_COLORS[note.lane];
                     ctx.shadowColor = LANE_COLORS[note.lane];
                     ctx.shadowBlur = 10;
-                    
+
                     if (typeof ctx.roundRect === 'function') {
                         ctx.beginPath();
                         ctx.roundRect(nx, noteY - 10, nw, 20, 6);
@@ -986,7 +1475,8 @@ font-weight: bold;
             }
         });
 
-        for (var j = 0; j < 4; j++) {
+        var labelSize = Math.max(13, Math.min(22, laneWidth * 0.28));
+        for (var j = 0; j < LANE_COUNT; j++) {
             var kx = stageLeft + j * laneWidth;
             if (KEY_STATE[j]) {
                 ctx.fillStyle = LANE_COLORS[j];
@@ -995,7 +1485,7 @@ font-weight: bold;
                 ctx.globalAlpha = 1.0;
             }
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 22px Arial';
+            ctx.font = 'bold ' + labelSize + 'px Arial';
             ctx.textAlign = 'center';
             ctx.fillText(LANE_NAMES[j], kx + laneWidth / 2, canvas.height - 40);
         }
@@ -1015,7 +1505,16 @@ font-weight: bold;
         }
     }
 
+    /* ══════════════════════════════════════════════════
+       입력 — 키보드 + 터치
+       ══════════════════════════════════════════════════ */
+
     window.addEventListener('keydown', function(e) {
+        if (e.code === 'Escape' && isPlaying) {
+            quitGame();
+            return;
+        }
+
         var idx = LANE_KEYS.indexOf(e.code);
         if (idx !== -1 && !KEY_STATE[idx]) {
             KEY_STATE[idx] = true;
@@ -1028,12 +1527,74 @@ font-weight: bold;
         if (idx !== -1) KEY_STATE[idx] = false;
     });
 
+    // 화면 x좌표 -> 레인 번호 (스테이지 밖도 가장 가까운 레인으로 매핑)
+    function laneFromX(clientX) {
+        var stageWidth = Math.min(LANE_COUNT * 125, canvas.width * 0.92);
+        var stageLeft = (canvas.width - stageWidth) / 2;
+        var lane = Math.floor((clientX - stageLeft) / (stageWidth / LANE_COUNT));
+        return Math.max(0, Math.min(LANE_COUNT - 1, lane));
+    }
+
+    var touchLanes = {};   // touch identifier -> lane
+
+    canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        for (var i = 0; i < e.changedTouches.length; i++) {
+            var t = e.changedTouches[i];
+            var lane = laneFromX(t.clientX);
+            touchLanes[t.identifier] = lane;
+            if (!KEY_STATE[lane]) {
+                KEY_STATE[lane] = true;
+                if (isPlaying) processHit(lane);
+            }
+        }
+    }, { passive: false });
+
+    function releaseTouch(e) {
+        e.preventDefault();
+        for (var i = 0; i < e.changedTouches.length; i++) {
+            var t = e.changedTouches[i];
+            var lane = touchLanes[t.identifier];
+            if (lane === undefined) continue;
+            delete touchLanes[t.identifier];
+
+            // 같은 레인을 누르고 있는 다른 손가락이 없을 때만 해제
+            var stillHeld = false;
+            for (var key in touchLanes) {
+                if (touchLanes[key] === lane) { stillHeld = true; break; }
+            }
+            if (!stillHeld) KEY_STATE[lane] = false;
+        }
+    }
+
+    canvas.addEventListener('touchend', releaseTouch, { passive: false });
+    canvas.addEventListener('touchcancel', releaseTouch, { passive: false });
+
+    // 곡 선택 화면 스와이프
+    (function enableCarouselSwipe() {
+        var container = document.querySelector('.carousel-container');
+        if (!container) return;
+        var startX = null;
+
+        container.addEventListener('touchstart', function(e) {
+            startX = e.changedTouches[0].clientX;
+        }, { passive: true });
+
+        container.addEventListener('touchend', function(e) {
+            if (startX === null) return;
+            var dx = e.changedTouches[0].clientX - startX;
+            startX = null;
+            if (Math.abs(dx) > 45) moveCarousel(dx < 0 ? 1 : -1);
+        }, { passive: true });
+    })();
+
     function processHit(lane) {
-        var currentTime = (performance.now() - startTime) / 1000;
+        var currentTime = getGameTime();
         var target = null;
         var minDiff = Infinity;
 
-        activeNotes.forEach(function(note) {
+        for (var i = 0; i < activeNotes.length; i++) {
+            var note = activeNotes[i];
             if (note.lane === lane && !note.hit && !note.missed) {
                 var diff = Math.abs(note.time - currentTime);
                 if (diff < minDiff) {
@@ -1041,7 +1602,7 @@ font-weight: bold;
                     target = note;
                 }
             }
-        });
+        }
 
         if (target && minDiff <= 0.14) {
             target.hit = true;
@@ -1055,11 +1616,12 @@ font-weight: bold;
         lastJudgment = type;
         judgmentTimer = 30;
         totalNotes++;
+        accPoints += ACC_WEIGHT[type];
+        judgeCounts[type]++;
 
         if (type === 'PERFECT') {
             score += 1000 + combo * 10;
             combo++;
-            perfectCount++;
         } else if (type === 'GREAT') {
             score += 700 + combo * 5;
             combo++;
@@ -1072,39 +1634,102 @@ font-weight: bold;
         if (combo > maxCombo) maxCombo = combo;
     }
 
+    // ESC / QUIT — 기록 없이 곡 선택으로
+    function quitGame() {
+        gameLaunchId++;
+        isPlaying = false;
+        useAudioClock = false;
+        showLoading(false);
+        stopAudio();
+        switchScreen('songSelectScreen');
+        renderCarousel();
+    }
+
     function endGame() {
         isPlaying = false;
+        useAudioClock = false;
         stopAudio();
 
         var track = TRACKS[currentTrackIndex];
-        document.getElementById('resultSongInfo').innerText = track.title + ' [' + selectedDiff.name + ']';
+        document.getElementById('resultSongInfo').innerText =
+            track.title + ' [' + selectedDiff.name + ' · ' + keyMode + 'KEY]';
         document.getElementById('resScore').innerText = score.toLocaleString();
         document.getElementById('resCombo').innerText = maxCombo;
-        var acc = totalNotes > 0 ? (perfectCount / totalNotes * 100).toFixed(1) : 100;
-        document.getElementById('resAccuracy').innerText = acc + '%';
+        document.getElementById('resAccuracy').innerText = getAccuracy().toFixed(1) + '%';
+        document.getElementById('resPerfect').innerText = judgeCounts.PERFECT;
+        document.getElementById('resGreat').innerText = judgeCounts.GREAT;
+        document.getElementById('resGood').innerText = judgeCounts.GOOD;
+        document.getElementById('resMiss').innerText = judgeCounts.MISS;
 
         saveAndRenderLeaderboard(track.id, score, maxCombo);
         switchScreen('resultScreen');
     }
 
-    async function saveAndRenderLeaderboard(songId, finalScore, maxCombo) {
+    /* ══════════════════════════════════════════════════
+       리더보드 — 곡 + 키모드 + 난이도별로 분리
+       ══════════════════════════════════════════════════ */
+
+    function showLeaderboardNotice(message) {
+        var el = document.getElementById('lbNotice');
+        if (!el) return;
+        el.innerText = message;
+        el.classList.add('show');
+    }
+
+    // Edge Function 오류 본문에서 사람이 읽을 메시지를 꺼낸다
+    async function readFunctionError(err) {
+        try {
+            if (err.context && typeof err.context.json === 'function') {
+                var body = await err.context.json();
+                if (body && body.error) return body.error;
+            }
+        } catch (e) {}
+        return err.message || '알 수 없는 오류';
+    }
+
+    async function saveAndRenderLeaderboard(songId, finalScore, finalCombo) {
         var rows = document.getElementById('leaderboardRows');
+        var notice = document.getElementById('lbNotice');
+        var diffName = selectedDiff.name;
+        if (notice) notice.classList.remove('show');
         rows.innerHTML = '<tr><td colspan="4">Loading Leaderboard...</td></tr>';
 
         if (supabaseClient) {
             try {
-                await supabaseClient.from('leaderboard').insert([{
-                    user_name: currentUser,
-                    song_id: songId,
-                    score: finalScore,
-                    max_combo: maxCombo
-                }]);
+                // 점수는 클라이언트가 직접 INSERT 하지 않는다.
+                // Edge Function이 채보를 서버에서 재생성해 상한을 검증한 뒤 기록한다.
+                var fn = await supabaseClient.functions.invoke('submit-score', {
+                    body: {
+                        user_name: currentUser,
+                        song_id: songId,
+                        key_mode: keyMode,
+                        difficulty: diffName,
+                        score: finalScore,
+                        max_combo: finalCombo
+                    }
+                });
+
+                if (fn && fn.error) {
+                    var reason = await readFunctionError(fn.error);
+                    console.warn('점수 등록 실패:', reason);
+                    showLeaderboardNotice('점수가 등록되지 않았습니다 — ' + reason);
+                }
 
                 var res = await supabaseClient
                     .from('top10_leaderboard')
                     .select('*')
                     .eq('song_id', songId)
+                    .eq('key_mode', keyMode)
+                    .eq('difficulty', diffName)
                     .lte('rank', 10);
+
+                if (res && res.error) {
+                    res = await supabaseClient
+                        .from('top10_leaderboard')
+                        .select('*')
+                        .eq('song_id', songId)
+                        .lte('rank', 10);
+                }
 
                 if (res.data && res.data.length > 0) {
                     renderLeaderboardTable(res.data);
@@ -1116,9 +1741,9 @@ font-weight: bold;
         }
 
         var dummyData = [
-            { user_name: 'ProRhythm', score: finalScore + 5200, max_combo: maxCombo + 10 },
-            { user_name: currentUser, score: finalScore },
-            { user_name: 'BeatMaster', score: Math.max(0, finalScore - 3000), max_combo: Math.max(0, maxCombo - 15) }
+            { user_name: 'ProRhythm', score: finalScore + 5200, max_combo: finalCombo + 10 },
+            { user_name: currentUser, score: finalScore, max_combo: finalCombo },
+            { user_name: 'NeonRunner', score: Math.max(0, finalScore - 3000), max_combo: Math.max(0, finalCombo - 15) }
         ].sort(function(a, b) { return b.score - a.score; });
 
         renderLeaderboardTable(dummyData);
@@ -1134,12 +1759,19 @@ font-weight: bold;
 
             var rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
 
-            tr.innerHTML = 
+            tr.innerHTML =
                 '<td><span class="rank-badge ' + rankClass + '">' + (idx + 1) + '</span></td>' +
-                '<td>' + item.user_name + '</td>' +
-                '<td>' + item.score.toLocaleString() + '</td>' +
-                '<td>' + item.max_combo + '</td>';
+                '<td>' + escapeHtml(item.user_name) + '</td>' +
+                '<td>' + Number(item.score || 0).toLocaleString() + '</td>' +
+                '<td>' + Number(item.max_combo || 0) + '</td>';
             rows.appendChild(tr);
         });
     }
+
+    // 마지막으로 선택했던 키 모드 복원
+    (function initKeyMode() {
+        var saved = 4;
+        try { saved = parseInt(localStorage.getItem('beatdrop_key_mode'), 10) || 4; } catch (e) {}
+        applyKeyMode(saved);
+    })();
 </script>
