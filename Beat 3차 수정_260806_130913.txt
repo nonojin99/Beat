@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BEATDROP - Web Rhythm Game</title>
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- FontAwesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+user-select: none;
+-webkit-user-select: none;
+}
+
+body {
+background-color: #08090d;
+color: #ffffff;
+font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+width: 100vw;
+height: 100vh;
+overflow: hidden;
+display: flex;
+justify-content: center;
+align-items: center;
+}
+
+.screen {
+position: absolute;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+display: none;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+background: radial-gradient(circle at center, #1a1d2e 0%, #08090d 100%);
+opacity: 0;
+transition: opacity 0.4s ease-in-out;
+z-index: 1;
+}
+
+.screen.active {
+display: flex;
+opacity: 1;
+z-index: 10;
+}
+
+.game-title {
+font-size: 64px;
+font-weight: 900;
+letter-spacing: 4px;
+background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #00c6ff 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+text-shadow: 0 0 30px rgba(0, 242, 254, 0.3);
+margin-bottom: 20px;
+}
+
+.btn-primary {
+background: linear-gradient(135deg, #00f2fe, #4facfe);
+border: none;
+color: #08090d;
+font-size: 18px;
+font-weight: 800;
+padding: 16px 40px;
+border-radius: 30px;
+cursor: pointer;
+box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+transition: all 0.2s ease;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+.btn-primary:hover {
+transform: translateY(-3px) scale(1.03);
+box-shadow: 0 0 30px rgba(0, 242, 254, 0.7);
+}
+
+.btn-secondary {
+background: rgba(255, 255, 255, 0.1);
+border: 1px solid rgba(255, 255, 255, 0.2);
+color: #fff;
+font-size: 16px;
+font-weight: 600;
+padding: 12px 30px;
+border-radius: 20px;
+cursor: pointer;
+transition: all 0.2s ease;
+backdrop-filter: blur(5px);
+}
+
+.btn-secondary:hover {
+background: rgba(255, 255, 255, 0.25);
+border-color: #00f2fe;
+color: #00f2fe;
+}
+
+.login-box {
+background: rgba(26, 29, 46, 0.8);
+border: 1px solid rgba(0, 242, 254, 0.2);
+padding: 50px 40px;
+border-radius: 20px;
+backdrop-filter: blur(15px);
+box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+text-align: center;
+width: 420px;
+}
+
+.login-box p {
+color: #8f93a2;
+font-size: 15px;
+margin-bottom: 30px;
+}
+
+.input-nickname {
+width: 100%;
+padding: 16px 20px;
+background: rgba(13, 15, 23, 0.9);
+border: 2px solid #2e3440;
+border-radius: 12px;
+color: #fff;
+font-size: 18px;
+font-weight: 600;
+text-align: center;
+outline: none;
+margin-bottom: 25px;
+transition: all 0.3s ease;
+}
+
+.input-nickname:focus {
+border-color: #00f2fe;
+box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+}
+
+.song-select-header {
+position: absolute;
+top: 40px;
+text-align: center;
+}
+
+.carousel-container {
+position: relative;
+width: 100vw;
+height: 420px;
+display: flex;
+align-items: center;
+justify-content: center;
+perspective: 1000px;
+overflow: hidden;
+}
+
+.carousel-track {
+display: flex;
+gap: 40px;
+transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+align-items: center;
+}
+
+.song-card {
+width: 280px;
+height: 380px;
+background: rgba(26, 29, 46, 0.85);
+border: 2px solid rgba(255, 255, 255, 0.1);
+border-radius: 20px;
+padding: 25px;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+align-items: center;
+cursor: pointer;
+transition: all 0.4s ease;
+transform: scale(0.85);
+opacity: 0.5;
+backdrop-filter: blur(10px);
+box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+}
+
+.song-card.active {
+transform: scale(1.1);
+opacity: 1;
+border-color: #00f2fe;
+box-shadow: 0 0 40px rgba(0, 242, 254, 0.4);
+background: rgba(30, 35, 55, 0.95);
+}
+
+.album-art {
+width: 180px;
+height: 180px;
+border-radius: 16px;
+background: #11131f;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 50px;
+color: #00f2fe;
+box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+margin-bottom: 15px;
+position: relative;
+overflow: hidden;
+background-size: cover;
+background-position: center;
+}
+
+.song-info {
+text-align: center;
+width: 100%;
+}
+
+.song-title {
+font-size: 20px;
+font-weight: 800;
+color: #fff;
+margin-bottom: 6px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.song-genre {
+font-size: 13px;
+color: #8f93a2;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+.song-bpm {
+font-size: 12px;
+color: #00f2fe;
+margin-top: 4px;
+font-weight: bold;
+}
+
+.carousel-btn {
+position: absolute;
+top: 50%;
+transform: translateY(-50%);
+width: 60px;
+height: 60px;
+background: rgba(26, 29, 46, 0.9);
+border: 1px solid rgba(0, 242, 254, 0.3);
+border-radius: 50%;
+color: #00f2fe;
+font-size: 24px;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+z-index: 20;
+transition: all 0.2s ease;
+}
+
+.carousel-btn:hover {
+background: #00f2fe;
+color: #08090d;
+box-shadow: 0 0 20px rgba(0, 242, 254, 0.8);
+}
+
+.carousel-btn.left { left: 50px; }
+.carousel-btn.right { right: 50px; }
+
+.song-select-footer {
+position: absolute;
+bottom: 40px;
+display: flex;
+gap: 20px;
+}
+
+.diff-container {
+display: flex;
+gap: 25px;
+margin: 40px 0;
+}
+
+.diff-card {
+width: 200px;
+height: 280px;
+background: rgba(26, 29, 46, 0.8);
+border: 2px solid rgba(255, 255, 255, 0.1);
+border-radius: 16px;
+padding: 25px;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+align-items: center;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+
+.diff-card:hover, .diff-card.selected {
+transform: translateY(-10px);
+border-color: #00f2fe;
+box-shadow: 0 10px 30px rgba(0, 242, 254, 0.3);
+background: rgba(30, 35, 55, 0.95);
+}
+
+.diff-badge {
+font-size: 24px;
+font-weight: 900;
+text-transform: uppercase;
+}
+
+.diff-easy { color: #ffbe0b; }
+.diff-normal { color: #00f2fe; }
+.diff-hard { color: #ff0055; }
+.diff-expert { color: #ff0000; }
+
+#gameScreen {
+padding: 0;
+background: #000;
+}
+
+#gameCanvas {
+width: 100vw;
+height: 100vh;
+display: block;
+}
+
+.hud-overlay {
+position: absolute;
+top: 20px;
+left: 40px;
+right: 40px;
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+pointer-events: none;
+z-index: 10;
+}
+
+.hud-box {
+background: rgba(13, 15, 23, 0.7);
+border: 1px solid rgba(255, 255, 255, 0.1);
+padding: 12px 25px;
+border-radius: 12px;
+backdrop-filter: blur(5px);
+}
+
+.hud-val {
+font-size: 28px;
+font-weight: 800;
+color: #00f2fe;
+}
+
+.result-box {
+background: rgba(26, 29, 46, 0.9);
+border: 1px solid rgba(0, 242, 254, 0.3);
+width: 700px;
+padding: 40px;
+border-radius: 24px;
+backdrop-filter: blur(15px);
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+
+.result-stats {
+display: flex;
+justify-content: space-around;
+width: 100%;
+margin: 25px 0;
+background: rgba(13, 15, 23, 0.6);
+padding: 20px;
+border-radius: 12px;
+}
+
+.result-stat-item {
+text-align: center;
+}
+
+.result-stat-item .label {
+font-size: 12px;
+color: #8f93a2;
+text-transform: uppercase;
+}
+
+.result-stat-item .val {
+font-size: 26px;
+font-weight: 800;
+color: #00f2fe;
+margin-top: 4px;
+}
+
+.leaderboard-table {
+width: 100%;
+border-collapse: collapse;
+margin-bottom: 25px;
+max-height: 200px;
+overflow-y: auto;
+display: block;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+padding: 10px 15px;
+text-align: left;
+font-size: 14px;
+}
+
+.leaderboard-table th {
+color: #8f93a2;
+border-bottom: 1px solid #2e3440;
+text-transform: uppercase;
+font-size: 12px;
+}
+
+.leaderboard-table tr {
+border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.leaderboard-table tr.highlight {
+background: rgba(0, 242, 254, 0.15);
+color: #00f2fe;
+font-weight: bold;
+}
+
+.rank-badge {
+display: inline-block;
+width: 24px;
+height: 24px;
+border-radius: 50%;
+background: #2e3440;
+text-align: center;
+line-height: 24px;
+font-size: 12px;
+font-weight: bold;
+}
+
+.rank-1 { background: #ffbe0b; color: #000; }
+.rank-2 { background: #e0e0e0; color: #000; }
+.rank-3 { background: #cd7f32; color: #000; }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: NICKNAME INPUT -->
+<div class="screen active" id="nicknameScreen">
+<div class="game-title">BEATDROP</div>
+<div class="login-box">
+<h2>PLAYER PROFILE</h2>
+<p>리더보드에 등록할 닉네임을 입력하세요</p>
+<input type="text" id="inputUserNickname" class="input-nickname" placeholder="NICKNAME" maxlength="12" value="BeatMaster">
+<button class="btn-primary" onclick="goToSongSelect()">ENTER GAME</button>
+</div>
+</div>
+
+<!-- SCREEN 2: SONG SELECT -->
+<div class="screen" id="songSelectScreen">
+<div class="song-select-header">
+<div class="game-title" style="font-size: 36px; margin-bottom: 5px;">SELECT TRACK</div>
+<p style="color: #8f93a2; font-size: 14px;">좌우 화살표를 눌러 곡을 선택하세요</p>
+</div>
+
+<button class="carousel-btn left" onclick="moveCarousel(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+<div class="carousel-container">
+<div class="carousel-track" id="carouselTrack"></div>
+</div>
+<button class="carousel-btn right" onclick="moveCarousel(1)"><i class="fa-solid fa-chevron-right"></i></button>
+
+<div class="song-select-footer">
+<button class="btn-secondary" onclick="switchScreen('nicknameScreen')">BACK</button>
+<button class="btn-primary" onclick="goToDifficultySelect()">SELECT DIFFICULTY</button>
+</div>
+</div>
+
+<!-- SCREEN 3: DIFFICULTY SELECT -->
+<div class="screen" id="difficultyScreen">
+<div class="game-title" style="font-size: 36px; margin-bottom: 5px;">SELECT DIFFICULTY</div>
+<p style="color: #8f93a2; font-size: 14px;" id="diffSongTitle">Selected Track</p>
+
+<div class="diff-container" id="diffContainer"></div>
+
+<div style="display: flex; gap: 20px;">
+<button class="btn-secondary" onclick="switchScreen('songSelectScreen')">BACK</button>
+<button class="btn-primary" onclick="startGame()">START GAME</button>
+</div>
+</div>
+
+<!-- SCREEN 4: GAMEPLAY SCREEN -->
+<div class="screen" id="gameScreen">
+<div class="hud-overlay">
+<div class="hud-box">
+<div style="font-size: 11px; color: #8f93a2;">SCORE</div>
+<div class="hud-val" id="hudScore">0</div>
+</div>
+<div class="hud-box" style="text-align: center;">
+<div style="font-size: 11px; color: #8f93a2;" id="hudTrackInfo">TRACK</div>
+<div style="font-size: 16px; font-weight: bold; color: #fff;" id="hudDiffInfo">NORMAL</div>
+</div>
+<div class="hud-box" style="text-align: right;">
+<div style="font-size: 11px; color: #8f93a2;">ACCURACY</div>
+<div class="hud-val" id="hudAccuracy">100%</div>
+</div>
+</div>
+<canvas id="gameCanvas"></canvas>
+</div>
+
+<!-- SCREEN 5: RESULT & LEADERBOARD -->
+<div class="screen" id="resultScreen">
+<div class="result-box">
+<div class="game-title" style="font-size: 40px; margin-bottom: 0;">STAGE CLEAR</div>
+<p style="color: #8f93a2; font-size: 14px;" id="resultSongInfo">Track [NORMAL]</p>
+
+<div class="result-stats">
+<div class="result-stat-item">
+<div class="label">Final Score</div>
+<div class="val" id="resScore">0</div>
+</div>
+<div class="result-stat-item">
+<div class="label">Max Combo</div>
+<div class="val" id="resCombo">0</div>
+</div>
+<div class="result-stat-item">
+<div class="label">Accuracy</div>
+<div class="val" id="resAccuracy">100%</div>
+</div>
+</div>
+
+<div style="width: 100%; text-align: left; font-size: 14px; font-weight: bold; color: #8f93a2; margin-bottom: 10px;">
+<i class="fa-solid fa-trophy" style="color: #ffbe0b;"></i> TOP LEADERBOARD
+</div>
+<table class="leaderboard-table">
+<thead>
+<tr>
+<th style="width: 15%;">RANK</th>
+<th style="width: 45%;">PLAYER</th>
+<th style="width: 25%;">SCORE</th>
+<th style="width: 15%;">COMBO</th>
+</tr>
+</thead>
+<tbody id="leaderboardRows"></tbody>
+</table>
+
+<div style="display: flex; gap: 20px; width: 100%; justify-content: center;">
+<button class="btn-secondary" onclick="switchScreen('songSelectScreen')">SONG SELECT</button>
+<button class="btn-primary" onclick="startGame()">RETRY</button>
+</div>
+</div>
+</div>
+
+<script>
+var SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+var SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+var supabaseClient = null;
+
+try {
+if (window.supabase && SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
+supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+} catch (err) {
+console.warn('Supabase initialization bypassed:', err);
+}
+
+var TRACKS = [
+{
+id: 'neon_city_night',
+title: 'Neon City Night',
+genre: 'Synthwave',
+bpm: 110,
+audioUrl: 'assets/audio/neon_city_night.mp3',
+coverUrl: 'assets/images/neon_city_night.jpg',
+icon: 'fa-city',
+difficulties: [
+{ name: 'EASY', level: 1, class: 'diff-easy', speed: 380 },
+{ name: 'NORMAL', level: 3, class: 'diff-normal', speed: 450 }
+ ]
+},
+{
+id: 'cybernetic_pulse',
+title: 'Cybernetic Pulse',
+genre: 'Tech Trance',
+bpm: 135,
+audioUrl: 'assets/audio/cybernetic_pulse.mp3',
+coverUrl: 'assets/images/cybernetic_pulse.jpg',
+icon: 'fa-bolt',
+difficulties: [
+{ name: 'EASY', level: 2, class: 'diff-easy', speed: 400 },
+{ name: 'NORMAL', level: 4, class: 'diff-normal', speed: 480 },
+{ name: 'HARD', level: 6, class: 'diff-hard', speed: 550 }
+ ]
+},
+{
+id: 'midnight_rush',
+title: 'Midnight Rush',
+genre: 'Drum & Bass',
+bpm: 174,
+audioUrl: 'assets/audio/midnight_rush.mp3',
+coverUrl: 'assets/images/midnight_rush.jpg',
+icon: 'fa-compact-disc',
+difficulties: [
+{ name: 'NORMAL', level: 5, class: 'diff-normal', speed: 500 },
+{ name: 'HARD', level: 8, class: 'diff-hard', speed: 600 },
+{ name: 'EXPERT', level: 10, class: 'diff-expert', speed: 700 }
+ ]
+},
+{
+id: 'overdrive_heart',
+title: 'Overdrive Heart',
+genre: 'Hardcore Rock',
+bpm: 190,
+audioUrl: 'assets/audio/overdrive_heart.mp3',
+coverUrl: 'assets/images/overdrive_heart.jpg',
+icon: 'fa-fire',
+difficulties: [
+{ name: 'HARD', level: 7, class: 'diff-hard', speed: 580 },
+{ name: 'EXPERT', level: 12, class: 'diff-expert', speed: 750 }
+ ]
+}
+];
+
+var currentUser = 'BeatMaster';
+var currentTrackIndex = 0;
+var selectedDiff = null;
+
+var audioElement = new Audio();
+
+function switchScreen(screenId) {
+var screens = document.querySelectorAll('.screen');
+for (var i = 0; i < screens.length; i++) {
+screens[i].classList.remove('active');
+}
+document.getElementById(screenId).classList.add('active');
+stopAudio();
+}
+
+function goToSongSelect() {
+var input = document.getElementById('inputUserNickname').value.trim();
+if (input) currentUser = input;
+
+try {
+audioElement.play().then(function() {
+audioElement.pause();
+}).catch(function(e){});
+} catch(e) {}
+
+switchScreen('songSelectScreen');
+renderCarousel();
+playAudioPreview();
+}
+
+function goToDifficultySelect() {
+switchScreen('difficultyScreen');
+renderDifficulties();
+}
+
+function renderCarousel() {
+var trackEl = document.getElementById('carouselTrack');
+trackEl.innerHTML = '';
+
+TRACKS.forEach(function(track, idx) {
+var card = document.createElement('div');
+card.className = 'song-card' + (idx === currentTrackIndex ? ' active' : '');
+card.onclick = function() {
+currentTrackIndex = idx;
+updateCarousel();
+};
+
+var albumArtDiv = document.createElement('div');
+albumArtDiv.className = 'album-art';
+if (track.coverUrl) {
+albumArtDiv.style.backgroundImage = 'url("' + track.coverUrl + '")';
+} else {
+albumArtDiv.innerHTML = '<i class="fa-solid ' + track.icon + '"></i>';
+}
+
+var songInfoDiv = document.createElement('div');
+songInfoDiv.className = 'song-info';
+songInfoDiv.innerHTML =
+'<div class="song-title">' + track.title + '</div>' +
+'<div class="song-genre">' + track.genre + '</div>' +
+'<div class="song-bpm">' + track.bpm + ' BPM</div>';
+
+card.appendChild(albumArtDiv);
+card.appendChild(songInfoDiv);
+trackEl.appendChild(card);
+});
+
+updateCarousel();
+}
+
+function updateCarousel() {
+var trackEl = document.getElementById('carouselTrack');
+var offset = -currentTrackIndex * (280 + 40);
+trackEl.style.transform = 'translateX(' + offset + 'px)';
+
+var cards = document.querySelectorAll('.song-card');
+for (var i = 0; i < cards.length; i++) {
+if (i === currentTrackIndex) cards[i].classList.add('active');
+else cards[i].classList.remove('active');
+}
+
+playAudioPreview();
+}
+
+function moveCarousel(direction) {
+currentTrackIndex += direction;
+if (currentTrackIndex < 0) currentTrackIndex = TRACKS.length - 1;
+if (currentTrackIndex >= TRACKS.length) currentTrackIndex = 0;
+updateCarousel();
+}
+
+function playAudioPreview() {
+stopAudio();
+var track = TRACKS[currentTrackIndex];
+audioElement.src = track.audioUrl;
+audioElement.currentTime = 15;
+audioElement.volume = 0.5;
+var p = audioElement.play();
+if (p !== undefined) {
+p.catch(function(e) { console.log('Autoplay prevented'); });
+}
+}
+
+function stopAudio() {
+if (audioElement) {
+audioElement.pause();
+}
+}
+
+function renderDifficulties() {
+var track = TRACKS[currentTrackIndex];
+document.getElementById('diffSongTitle').innerText = 'Selected Track: ' + track.title + ' (' + track.bpm + ' BPM)';
+
+var container = document.getElementById('diffContainer');
+container.innerHTML = '';
+
+var sortedDiffs = track.difficulties.slice().sort(function(a, b) { return a.level - b.level; });
+selectedDiff = sortedDiffs[0];
+
+sortedDiffs.forEach(function(diff, idx) {
+var card = document.createElement('div');
+card.className = 'diff-card' + (idx === 0 ? ' selected' : '');
+card.onclick = function() {
+var allCards = document.querySelectorAll('.diff-card');
+for (var i = 0; i < allCards.length; i++) {
+allCards[i].classList.remove('selected');
+}
+card.classList.add('selected');
+selectedDiff = diff;
+};
+card.innerHTML =
+'<div class="diff-badge ' + diff.class + '">' + diff.name + '</div>' +
+'<div style="font-size: 48px; font-weight: 900; color: #fff;">' + diff.level + '</div>' +
+'<div style="font-size: 12px; color: #8f93a2;">SPEED: ' + diff.speed + '</div>';
+container.appendChild(card);
+});
+}
+
+var canvas = document.getElementById('gameCanvas');
+var ctx = canvas.getContext('2d');
+
+var isPlaying = false;
+var startTime = 0;
+var activeNotes = [];
+
+var score = 0;
+var combo = 0;
+var maxCombo = 0;
+var perfectCount = 0;
+var totalNotes = 0;
+var lastJudgment = '';
+var judgmentTimer = 0;
+
+var LANE_KEYS = ['KeyS', 'KeyD', 'KeyK', 'KeyL'];
+var LANE_NAMES = ['S', 'D', 'K', 'L'];
+var LANE_COLORS = ['#ff0055', '#00f2fe', '#00f2fe', '#ff0055'];
+var KEY_STATE = [false, false, false, false];
+
+function resizeCanvas() {
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+
+function startGame() {
+switchScreen('gameScreen');
+resizeCanvas();
+
+var track = TRACKS[currentTrackIndex];
+document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
+document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
+
+score = 0;
+combo = 0;
+maxCombo = 0;
+perfectCount = 0;
+totalNotes = 0;
+lastJudgment = '';
+
+activeNotes = generateChart(track.bpm, 90);
+
+audioElement.src = track.audioUrl;
+audioElement.currentTime = 0;
+audioElement.volume = 0.8;
+var p = audioElement.play();
+if (p !== undefined) {
+p.catch(function(e) { console.log('Audio Play Error:', e); });
+}
+
+startTime = performance.now();
+isPlaying = true;
+requestAnimationFrame(gameLoop);
+}
+
+function generateChart(bpm, durationSec) {
+var notes = [];
+var interval = 60 / bpm;
+var currentTime = 2.0;
+var totalBeats = Math.floor(durationSec / interval);
+
+for (var i = 0; i < totalBeats; i++) {
+var lane = Math.floor(Math.random() * 4);
+notes.push({ time: currentTime, lane: lane, hit: false, missed: false });
+
+if (selectedDiff.level > 5 && Math.random() > 0.5) {
+var secondLane = (lane + 1 + Math.floor(Math.random() * 3)) % 4;
+notes.push({ time: currentTime, lane: secondLane, hit: false, missed: false });
+}
+currentTime += (Math.random() > 0.2 ? interval : interval * 0.5);
+}
+return notes;
+}
+
+function gameLoop(timestamp) {
+if (!isPlaying) return;
+
+var elapsedTime = (timestamp - startTime) / 1000;
+var speed = selectedDiff.speed;
+var judgmentY = canvas.height - 120;
+
+activeNotes.forEach(function(note) {
+if (!note.hit && !note.missed) {
+var noteY = judgmentY - (note.time - elapsedTime) * speed;
+if (noteY > judgmentY + 80) {
+note.missed = true;
+handleJudgment('MISS');
+}
+}
+});
+
+document.getElementById('hudScore').innerText = score.toLocaleString();
+var acc = totalNotes > 0 ? Math.round((perfectCount / totalNotes) * 100) : 100;
+document.getElementById('hudAccuracy').innerText = acc + '%';
+
+var remaining = activeNotes.filter(function(n) { return !n.hit && !n.missed; });
+if (remaining.length === 0 && elapsedTime > (activeNotes[activeNotes.length - 1].time + 2)) {
+endGame();
+return;
+}
+
+renderGame(elapsedTime, judgmentY, speed);
+requestAnimationFrame(gameLoop);
+}
+
+function renderGame(elapsedTime, judgmentY, speed) {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+var stageWidth = Math.min(500, canvas.width * 0.4);
+var stageLeft = (canvas.width - stageWidth) / 2;
+var laneWidth = stageWidth / 4;
+
+ctx.fillStyle = 'rgba(17, 19, 31, 0.85)';
+ctx.fillRect(stageLeft, 0, stageWidth, canvas.height);
+
+for (var i = 0; i < 4; i++) {
+var x = stageLeft + i * laneWidth;
+if (KEY_STATE[i]) {
+ctx.fillStyle = 'rgba(0, 242, 254, 0.15)';
+ctx.fillRect(x, 0, laneWidth, canvas.height);
+}
+ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+ctx.strokeRect(x, 0, laneWidth, canvas.height);
+}
+
+ctx.strokeStyle = '#00f2fe';
+ctx.lineWidth = 4;
+ctx.shadowColor = '#00f2fe';
+ctx.shadowBlur = 15;
+ctx.beginPath();
+ctx.moveTo(stageLeft, judgmentY);
+ctx.lineTo(stageLeft + stageWidth, judgmentY);
+ctx.stroke();
+ctx.shadowBlur = 0;
+
+activeNotes.forEach(function(note) {
+if (!note.hit && !note.missed) {
+var noteY = judgmentY - (note.time - elapsedTime) * speed;
+if (noteY > -50 && noteY < canvas.height + 50) {
+var nx = stageLeft + note.lane * laneWidth + 6;
+var nw = laneWidth - 12;
+
+ctx.fillStyle = LANE_COLORS[note.lane];
+ctx.shadowColor = LANE_COLORS[note.lane];
+ctx.shadowBlur = 10;
+
+if (typeof ctx.roundRect === 'function') {
+ctx.beginPath();
+ctx.roundRect(nx, noteY - 10, nw, 20, 6);
+ctx.fill();
+} else {
+ctx.fillRect(nx, noteY - 10, nw, 20);
+}
+ctx.shadowBlur = 0;
+}
+}
+});
+
+for (var j = 0; j < 4; j++) {
+var kx = stageLeft + j * laneWidth;
+if (KEY_STATE[j]) {
+ctx.fillStyle = LANE_COLORS[j];
+ctx.globalAlpha = 0.5;
+ctx.fillRect(kx + 2, judgmentY, laneWidth - 4, canvas.height - judgmentY);
+ctx.globalAlpha = 1.0;
+}
+ctx.fillStyle = '#ffffff';
+ctx.font = 'bold 22px Arial';
+ctx.textAlign = 'center';
+ctx.fillText(LANE_NAMES[j], kx + laneWidth / 2, canvas.height - 40);
+}
+
+if (judgmentTimer > 0) {
+judgmentTimer--;
+ctx.font = 'black 36px Arial';
+ctx.textAlign = 'center';
+ctx.fillStyle = lastJudgment === 'PERFECT' ? '#00f2fe' : (lastJudgment === 'GREAT' ? '#ffbe0b' : '#ff0055');
+ctx.fillText(lastJudgment, canvas.width / 2, judgmentY - 80);
+
+if (combo > 1) {
+ctx.font = 'bold 24px Arial';
+ctx.fillStyle = '#ffffff';
+ctx.fillText(combo + ' COMBO', canvas.width / 2, judgmentY - 40);
+}
+}
+}
+
+window.addEventListener('keydown', function(e) {
+var idx = LANE_KEYS.indexOf(e.code);
+if (idx !== -1 && !KEY_STATE[idx]) {
+KEY_STATE[idx] = true;
+if (isPlaying) processHit(idx);
+}
+});
+
+window.addEventListener('keyup', function(e) {
+var idx = LANE_KEYS.indexOf(e.code);
+if (idx !== -1) KEY_STATE[idx] = false;
+});
+
+function processHit(lane) {
+var currentTime = (performance.now() - startTime) / 1000;
+var target = null;
+var minDiff = Infinity;
+
+activeNotes.forEach(function(note) {
+if (note.lane === lane && !note.hit && !note.missed) {
+var diff = Math.abs(note.time - currentTime);
+if (diff < minDiff) {
+minDiff = diff;
+target = note;
+}
+}
+});
+
+if (target && minDiff <= 0.14) {
+target.hit = true;
+if (minDiff <= 0.04) handleJudgment('PERFECT');
+else if (minDiff <= 0.08) handleJudgment('GREAT');
+else handleJudgment('GOOD');
+}
+}
+
+function handleJudgment(type) {
+lastJudgment = type;
+judgmentTimer = 30;
+totalNotes++;
+
+if (type === 'PERFECT') {
+score += 1000 + combo * 10;
+combo++;
+perfectCount++;
+} else if (type === 'GREAT') {
+score += 700 + combo * 5;
+combo++;
+} else if (type === 'GOOD') {
+score += 300;
+combo++;
+} else {
+combo = 0;
+}
+if (combo > maxCombo) maxCombo = combo;
+}
+
+function endGame() {
+isPlaying = false;
+stopAudio();
+
+var track = TRACKS[currentTrackIndex];
+document.getElementById('resultSongInfo').innerText = track.title + ' [' + selectedDiff.name + ']';
+document.getElementById('resScore').innerText = score.toLocaleString();
+document.getElementById('resCombo').innerText = maxCombo;
+var acc = totalNotes > 0 ? (perfectCount / totalNotes * 100).toFixed(1) : 100;
+document.getElementById('resAccuracy').innerText = acc + '%';
+
+saveAndRenderLeaderboard(track.id, score, maxCombo);
+switchScreen('resultScreen');
+}
+
+async function saveAndRenderLeaderboard(songId, finalScore, maxCombo) {
+var rows = document.getElementById('leaderboardRows');
+rows.innerHTML = '<tr><td colspan="4">Loading Leaderboard...</td></tr>';
+
+if (supabaseClient) {
+try {
+await supabaseClient.from('leaderboard').insert([{
+user_name: currentUser,
+song_id: songId,
+score: finalScore,
+max_combo: maxCombo
+}]);
+
+var res = await supabaseClient
+.from('top10_leaderboard')
+.select('*')
+.eq('song_id', songId)
+.lte('rank', 10);
+
+if (res.data && res.data.length > 0) {
+renderLeaderboardTable(res.data);
+return;
+}
+} catch (e) {
+console.error('Supabase Sync Error:', e);
+}
+}
+
+var dummyData = [
+{ user_name: 'ProRhythm', score: finalScore + 5200, max_combo: maxCombo + 10 },
+{ user_name: currentUser, score: finalScore, max_combo: maxCombo },
+{ user_name: 'BeatMaster', score: Math.max(0, finalScore - 3000), max_combo: Math.max(0, maxCombo - 15) }
+ ].sort(function(a, b) { return b.score - a.score; });
+
+renderLeaderboardTable(dummyData);
+}
+
+function renderLeaderboardTable(data) {
+var rows = document.getElementById('leaderboardRows');
+rows.innerHTML = '';
+
+data.forEach(function(item, idx) {
+var tr = document.createElement('tr');
+if (item.user_name === currentUser) tr.className = 'highlight';
+
+var rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
+
+tr.innerHTML =
+'<td><span class="rank-badge ' + rankClass + '">' + (idx + 1) + '</span></td>' +
+'<td>' + item.user_name + '</td>' +
+'<td>' + item.score.toLocaleString() + '</td>' +
+'<td>' + item.max_combo + '</td>';
+rows.appendChild(tr);
+});
+}
+</script>
+</body>
+</html>
