@@ -851,62 +851,52 @@ canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvas);
 
-// 🔥 오디오 Preloading 및 동기화 처리된 startGame
-function startGame() {
-stopAudio();
+    // 🔥 오디오 강제 재설정 및 음원 출력 보장 startGame
+    function startGame() {
+        stopAudio();
 
-var loadingOverlay = document.getElementById('loadingOverlay');
-loadingOverlay.classList.add('active');
+        // 1. 기존 오디오 객체 깔끔하게 해제 및 새 객체 생성 (브라우저 버퍼 꼬임 방지)
+        audioElement = new Audio();
+        
+        var track = TRACKS[currentTrackIndex];
+        audioElement.src = track.audioUrl;
+        audioElement.volume = 0.8;
 
-var track = TRACKS[currentTrackIndex];
+        // 2. 오디오 준비 및 시작 처리
+        var isStarted = false;
 
-// 오디오 객체 새로 준비
-audioElement.src = track.audioUrl;
-audioElement.currentTime = 0;
-audioElement.volume = 0.8;
-audioElement.load();
+        function beginGameplay() {
+            if (isStarted) return;
+            isStarted = true;
 
-var isStarted = false;
+            switchScreen('gameScreen');
+            resizeCanvas();
 
-function runGameLoop() {
-if (isStarted) return;
-isStarted = true;
+            document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
+            document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
 
-loadingOverlay.classList.remove('active');
-switchScreen('gameScreen');
-resizeCanvas();
+            score = 0; combo = 0; maxCombo = 0; perfectCount = 0; totalNotes = 0; lastJudgment = '';
+            activeNotes = generateChart(track.bpm, 90);
 
-document.getElementById('hudTrackInfo').innerText = track.title.toUpperCase();
-document.getElementById('hudDiffInfo').innerText = selectedDiff.name;
+            // 3. 음원 재생 시도 (실패 시 에러로그 출력)
+            var playPromise = audioElement.play();
+            if (playPromise !== undefined) {
+                playPromise.then(function() {
+                    console.log('🔊 게임 음원 정상 재생 시작!');
+                }).catch(function(e) {
+                    console.error('❌ 오디오 재생 실패:', e);
+                });
+            }
 
-score = 0; combo = 0; maxCombo = 0; perfectCount = 0; totalNotes = 0; lastJudgment = '';
-activeNotes = generateChart(track.bpm, 90);
+            // 4. 게임 타임라인 시작
+            startTime = performance.now();
+            isPlaying = true;
+            requestAnimationFrame(gameLoop);
+        }
 
-// 준비 완료 후 음원 재생과 타임라인 시작을 동기화
-var p = audioElement.play();
-if (p !== undefined) {
-p.catch(function(e) { console.warn('Game Audio Play Error:', e); });
-}
-
-startTime = performance.now();
-isPlaying = true;
-requestAnimationFrame(gameLoop);
-}
-
-// 브라우저가 음원 데이터를 버퍼링 완료했을 때 콜백 실행
-audioElement.oncanplaythrough = function() {
-audioElement.oncanplaythrough = null;
-runGameLoop();
-};
-
-// 타임아웃 예외 처리 (네트워크가 지연되어도 최대 1.5초 후에는 게임 강제 시작)
-setTimeout(function() {
-if (!isStarted) {
-audioElement.oncanplaythrough = null;
-runGameLoop();
-}
-}, 1500);
-}
+        // 로딩 기다리지 않고 즉시 시작 시도 (브라우저 유저 클릭 직후 타이밍 활용)
+        beginGameplay();
+    }
 
 function generateChart(bpm, durationSec) {
 var notes = [];
