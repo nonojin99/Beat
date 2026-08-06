@@ -29,7 +29,6 @@ justify-content: center;
 align-items: center;
 }
 
-/* Screen Wrapper */
 .screen {
 position: absolute;
 top: 0;
@@ -52,7 +51,6 @@ opacity: 1;
 z-index: 10;
 }
 
-/* Typography & UI Elements */
 .game-title {
 font-size: 64px;
 font-weight: 900;
@@ -103,7 +101,6 @@ border-color: #00f2fe;
 color: #00f2fe;
 }
 
-/* SCREEN 1: NICKNAME INPUT SCREEN */
 .login-box {
 background: rgba(26, 29, 46, 0.8);
 border: 1px solid rgba(0, 242, 254, 0.2);
@@ -141,7 +138,6 @@ border-color: #00f2fe;
 box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
 }
 
-/* SCREEN 2: SONG SELECT SCREEN (Carousel) */
 .song-select-header {
 position: absolute;
 top: 40px;
@@ -273,7 +269,6 @@ display: flex;
 gap: 20px;
 }
 
-/* SCREEN 3: DIFFICULTY SELECT SCREEN */
 .diff-container {
 display: flex;
 gap: 25px;
@@ -313,7 +308,6 @@ text-transform: uppercase;
 .diff-hard { color: #ff0055; }
 .diff-expert { color: #ff0000; }
 
-/* SCREEN 4: GAMEPLAY SCREEN */
 #gameScreen {
 padding: 0;
 background: #000;
@@ -351,7 +345,6 @@ font-weight: 800;
 color: #00f2fe;
 }
 
-/* SCREEN 5: LEADERBOARD & RESULT SCREEN */
 .result-box {
 background: rgba(26, 29, 46, 0.9);
 border: 1px solid rgba(0, 242, 254, 0.3);
@@ -450,7 +443,7 @@ font-weight: bold;
 <h2>PLAYER PROFILE</h2>
 <p>리더보드에 등록할 닉네임을 입력하세요</p>
 <input type="text" id="inputUserNickname" class="input-nickname" placeholder="NICKNAME" maxlength="12" value="BeatMaster">
-<button class="btn-primary" onclick="goToSongSelect()">ENTER GAME</button>1. s
+<button class="btn-primary" onclick="goToSongSelect()">ENTER GAME</button>
 </div>
 </div>
 
@@ -550,18 +543,22 @@ font-weight: bold;
 
 <script>
 // -------------------------------------------------------------
-// 1. SUPABASE CLIENT CONFIG (프로젝트 키 입력)
+// 1. SUPABASE CLIENT CONFIG (변수명 충돌 방지 안전 처리)
 // -------------------------------------------------------------
 const SUPABASE_URL = 'https://ijmmqmarbkkkssciagof.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_-Yw_iVRLOGF0W1CFj_v9SA_PLm301S6';
-let supabase = null;
+let supabaseClient = null;
 
-if (typeof supabase !== 'undefined' && SUPABASE_URL !== 'https://ijmmqmarbkkkssciagof.supabase.co') {
-supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+try {
+if (window.supabase && SUPABASE_URL !== 'https://YOUR_PROJECT_ID.supabase.co') {
+supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+} catch (err) {
+console.warn('Supabase initialization bypassed:', err);
 }
 
 // -------------------------------------------------------------
-// 2. TRACKS CONFIGURATION (Suno MP3 연결 구조)
+// 2. TRACKS CONFIG
 // -------------------------------------------------------------
 const TRACKS = [
 {
@@ -621,13 +618,9 @@ let currentTrackIndex = 0;
 let selectedDiff = null;
 
 let audioElement = new Audio();
-let audioCtx = null;
 
-// -------------------------------------------------------------
-// 3. UI SCREEN MANAGERS
-// -------------------------------------------------------------
 function switchScreen(screenId) {
-document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
 document.getElementById(screenId).classList.add('active');
 stopAudio();
 }
@@ -645,43 +638,26 @@ switchScreen('difficultyScreen');
 renderDifficulties();
 }
 
-    function renderCarousel() {
-        const trackEl = document.getElementById('carouselTrack');
-        trackEl.innerHTML = '';
+function renderCarousel() {
+const trackEl = document.getElementById('carouselTrack');
+trackEl.innerHTML = '';
 
-        TRACKS.forEach((track, idx) => {
-            const card = document.createElement('div');
-            card.className = 'song-card' + (idx === currentTrackIndex ? ' active' : '');
-            card.onclick = function() {
-                currentTrackIndex = idx;
-                updateCarousel();
-            };
-
-            // 백틱(`)을 사용한 템플릿 리터럴 구문 정제
-            card.innerHTML = 
-                '<div class="album-art">' +
-                    '<i class="fa-solid ' + track.icon + '"></i>' +
-                '</div>' +
-                '<div class="song-info">' +
-                    '<div class="song-title">' + track.title + '</div>' +
-                    '<div class="song-genre">' + track.genre + '</div>' +
-                    '<div class="song-bpm">' + track.bpm + ' BPM</div>' +
-                '</div>';
-
-            trackEl.appendChild(card);
-        });
-
-        updateCarousel();
-    }
-
-TRACKS.forEach((track, idx) => {
+TRACKS.forEach(function(track, idx) {
 const card = document.createElement('div');
-card.className = song-card ${idx === currentTrackIndex ? 'active' : ''}; card.onclick = () =&gt; { currentTrackIndex = idx; updateCarousel(); }; card.innerHTML =
-<div class="album-art">
-<i class="fa-solid ${track.icon}"&gt;&lt;/i&gt; &lt;/div&gt; &lt;div class="song-info"&gt; &lt;div class="song-title"&gt;${track.title}</div>
-<div class="song-genre">${track.genre}&lt;/div&gt; &lt;div class="song-bpm"&gt;${track.bpm} BPM</div>
-</div>
-`;
+card.className = 'song-card' + (idx === currentTrackIndex ? ' active' : '');
+card.onclick = function() {
+currentTrackIndex = idx;
+updateCarousel();
+};
+card.innerHTML =
+'<div class="album-art">' +
+'<i class="fa-solid ' + track.icon + '"></i>' +
+'</div>' +
+'<div class="song-info">' +
+'<div class="song-title">' + track.title + '</div>' +
+'<div class="song-genre">' + track.genre + '</div>' +
+'<div class="song-bpm">' + track.bpm + ' BPM</div>' +
+'</div>';
 trackEl.appendChild(card);
 });
 
@@ -691,10 +667,12 @@ updateCarousel();
 function updateCarousel() {
 const trackEl = document.getElementById('carouselTrack');
 const offset = -currentTrackIndex * (280 + 40);
-trackEl.style.transform = translateX(${offset}px)`;
+trackEl.style.transform = 'translateX(' + offset + 'px)';
 
-document.querySelectorAll('.song-card').forEach((card, idx) => {
-card.classList.toggle('active', idx === currentTrackIndex);
+const cards = document.querySelectorAll('.song-card');
+cards.forEach(function(card, idx) {
+if (idx === currentTrackIndex) card.classList.add('active');
+else card.classList.remove('active');
 });
 
 playAudioPreview();
@@ -711,9 +689,9 @@ function playAudioPreview() {
 stopAudio();
 const track = TRACKS[currentTrackIndex];
 audioElement.src = track.audioUrl;
-audioElement.currentTime = 15; // 15초 지점 미리듣기
+audioElement.currentTime = 15;
 audioElement.volume = 0.5;
-audioElement.play().catch(e => console.log('Audio autoplay prevented'));
+audioElement.play().catch(function(e) { console.log('Audio autoplay prevented'); });
 }
 
 function stopAudio() {
@@ -724,27 +702,30 @@ audioElement.pause();
 
 function renderDifficulties() {
 const track = TRACKS[currentTrackIndex];
-document.getElementById('diffSongTitle').innerText = Selected Track: ${track.title} (${track.bpm} BPM);
+document.getElementById('diffSongTitle').innerText = 'Selected Track: ' + track.title + ' (' + track.bpm + ' BPM)';
 
 const container = document.getElementById('diffContainer');
 container.innerHTML = '';
 
-const sortedDiffs = [...track.difficulties].sort((a, b) => a.level - b.level);
+const sortedDiffs = track.difficulties.slice().sort(function(a, b) { return a.level - b.level; });
 selectedDiff = sortedDiffs[0];
 
-sortedDiffs.forEach((diff, idx) => {
+sortedDiffs.forEach(function(diff, idx) {
 const card = document.createElement('div');
-card.className = diff-card ${idx === 0 ? 'selected' : ''}; card.onclick = () =&gt; { document.querySelectorAll('.diff-card').forEach(c =&gt; c.classList.remove('selected')); card.classList.add('selected'); selectedDiff = diff; }; card.innerHTML =
-<div class="diff-badge ${diff.class}"&gt;${diff.name}</div>
-<div style="font-size: 48px; font-weight: 900; color: #fff;">${diff.level}&lt;/div&gt; &lt;div style="font-size: 12px; color: #8f93a2;"&gt;SPEED: ${diff.speed}</div>
-`;
+card.className = 'diff-card' + (idx === 0 ? ' selected' : '');
+card.onclick = function() {
+document.querySelectorAll('.diff-card').forEach(function(c) { c.classList.remove('selected'); });
+card.classList.add('selected');
+selectedDiff = diff;
+};
+card.innerHTML =
+'<div class="diff-badge ' + diff.class + '">' + diff.name + '</div>' +
+'<div style="font-size: 48px; font-weight: 900; color: #fff;">' + diff.level + '</div>' +
+'<div style="font-size: 12px; color: #8f93a2;">SPEED: ' + diff.speed + '</div>';
 container.appendChild(card);
 });
 }
 
-// -------------------------------------------------------------
-// 4. GAME ENGINE
-// -------------------------------------------------------------
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -786,13 +767,12 @@ perfectCount = 0;
 totalNotes = 0;
 lastJudgment = '';
 
-// 90초(1분 30초) 설정 적용
 activeNotes = generateChart(track.bpm, 90);
 
 audioElement.src = track.audioUrl;
 audioElement.currentTime = 0;
 audioElement.volume = 0.8;
-audioElement.play().catch(e => console.log('Audio Play Failed:', e));
+audioElement.play().catch(function(e) { console.log('Audio Play Failed:', e); });
 
 startTime = performance.now();
 isPlaying = true;
@@ -825,7 +805,7 @@ const elapsedTime = (timestamp - startTime) / 1000;
 const speed = selectedDiff.speed;
 const judgmentY = canvas.height - 120;
 
-activeNotes.forEach(note => {
+activeNotes.forEach(function(note) {
 if (!note.hit && !note.missed) {
 const noteY = judgmentY - (note.time - elapsedTime) * speed;
 if (noteY > judgmentY + 80) {
@@ -839,7 +819,7 @@ document.getElementById('hudScore').innerText = score.toLocaleString();
 const acc = totalNotes > 0 ? Math.round((perfectCount / totalNotes) * 100) : 100;
 document.getElementById('hudAccuracy').innerText = acc + '%';
 
-const remaining = activeNotes.filter(n => !n.hit && !n.missed);
+const remaining = activeNotes.filter(function(n) { return !n.hit && !n.missed; });
 if (remaining.length === 0 && elapsedTime > (activeNotes[activeNotes.length - 1].time + 2)) {
 endGame();
 return;
@@ -879,7 +859,7 @@ ctx.lineTo(stageLeft + stageWidth, judgmentY);
 ctx.stroke();
 ctx.shadowBlur = 0;
 
-activeNotes.forEach(note => {
+activeNotes.forEach(function(note) {
 if (!note.hit && !note.missed) {
 const noteY = judgmentY - (note.time - elapsedTime) * speed;
 if (noteY > -50 && noteY < canvas.height + 50) {
@@ -921,12 +901,12 @@ ctx.fillText(lastJudgment, canvas.width / 2, judgmentY - 80);
 if (combo > 1) {
 ctx.font = 'bold 24px Arial';
 ctx.fillStyle = '#ffffff';
-ctx.fillText(``${combo} COMBO`, canvas.width / 2, judgmentY - 40);
+ctx.fillText(combo + ' COMBO', canvas.width / 2, judgmentY - 40);
 }
 }
 }
 
-window.addEventListener('keydown', (e) => {
+window.addEventListener('keydown', function(e) {
 const idx = LANE_KEYS.indexOf(e.code);
 if (idx !== -1 && !KEY_STATE[idx]) {
 KEY_STATE[idx] = true;
@@ -934,7 +914,7 @@ if (isPlaying) processHit(idx);
 }
 });
 
-window.addEventListener('keyup', (e) => {
+window.addEventListener('keyup', function(e) {
 const idx = LANE_KEYS.indexOf(e.code);
 if (idx !== -1) KEY_STATE[idx] = false;
 });
@@ -944,7 +924,7 @@ const currentTime = (performance.now() - startTime) / 1000;
 let target = null;
 let minDiff = Infinity;
 
-activeNotes.forEach(note => {
+activeNotes.forEach(function(note) {
 if (note.lane === lane && !note.hit && !note.missed) {
 const diff = Math.abs(note.time - currentTime);
 if (diff < minDiff) {
@@ -988,7 +968,7 @@ isPlaying = false;
 stopAudio();
 
 const track = TRACKS[currentTrackIndex];
-document.getElementById('resultSongInfo').innerText = ${track.title} [${selectedDiff.name}];
+document.getElementById('resultSongInfo').innerText = track.title + ' [' + selectedDiff.name + ']';
 document.getElementById('resScore').innerText = score.toLocaleString();
 document.getElementById('resCombo').innerText = maxCombo;
 const acc = totalNotes > 0 ? (perfectCount / totalNotes * 100).toFixed(1) : 100;
@@ -1002,23 +982,27 @@ async function saveAndRenderLeaderboard(songId, finalScore, maxCombo) {
 const rows = document.getElementById('leaderboardRows');
 rows.innerHTML = '<tr><td colspan="4">Loading Leaderboard...</td></tr>';
 
-if (supabase) {
-await supabase.from('leaderboard').insert([{
+if (supabaseClient) {
+try {
+await supabaseClient.from('leaderboard').insert([{
 user_name: currentUser,
 song_id: songId,
 score: finalScore,
 max_combo: maxCombo
 }]);
 
-const { data } = await supabase
+const res = await supabaseClient
 .from('top10_leaderboard')
 .select('*')
 .eq('song_id', songId)
 .lte('rank', 10);
 
-if (data && data.length > 0) {
-renderLeaderboardTable(data);
+if (res.data && res.data.length > 0) {
+renderLeaderboardTable(res.data);
 return;
+}
+} catch (e) {
+console.error('Supabase Sync Error:', e);
 }
 }
 
@@ -1026,7 +1010,7 @@ const dummyData = [
 { user_name: 'ProRhythm', score: finalScore + 5200, max_combo: maxCombo + 10 },
 { user_name: currentUser, score: finalScore, max_combo: maxCombo },
 { user_name: 'BeatMaster', score: Math.max(0, finalScore - 3000), max_combo: Math.max(0, maxCombo - 15) }
- ].sort((a, b) => b.score - a.score);
+ ].sort(function(a, b) { return b.score - a.score; });
 
 renderLeaderboardTable(dummyData);
 }
@@ -1035,14 +1019,17 @@ function renderLeaderboardTable(data) {
 const rows = document.getElementById('leaderboardRows');
 rows.innerHTML = '';
 
-data.forEach((item, idx) => {
+data.forEach(function(item, idx) {
 const tr = document.createElement('tr');
 if (item.user_name === currentUser) tr.className = 'highlight';
 
 const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
 
-tr.innerHTML = &lt;td&gt;&lt;span class="rank-badge ${rankClass}">${idx + 1}&lt;/span&gt;&lt;/td&gt; &lt;td&gt;${item.user_name}</td>
-<td>${item.score.toLocaleString()}&lt;/td&gt; &lt;td&gt;${item.max_combo}&lt;/td&gt;;
+tr.innerHTML =
+'<td><span class="rank-badge ' + rankClass + '">' + (idx + 1) + '</span></td>' +
+'<td>' + item.user_name + '</td>' +
+'<td>' + item.score.toLocaleString() + '</td>' +
+'<td>' + item.max_combo + '</td>';
 rows.appendChild(tr);
 });
 }
