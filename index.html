@@ -617,6 +617,7 @@ var currentUser = 'BeatMaster';
 var currentTrackIndex = 0;
 var selectedDiff = null;
 
+// 싱글톤 Audio 객체
 var audioElement = new Audio();
 
 function switchScreen(screenId) {
@@ -628,15 +629,22 @@ document.getElementById(screenId).classList.add('active');
 stopAudio();
 }
 
+// 🔥 브라우저 Autoplay 제한 해제 (Unlock Audio Context)
+function unlockAudio() {
+audioElement.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+var p = audioElement.play();
+if (p !== undefined) {
+p.then(function() {
+audioElement.pause();
+}).catch(function(e) {});
+}
+}
+
 function goToSongSelect() {
 var input = document.getElementById('inputUserNickname').value.trim();
 if (input) currentUser = input;
 
-try {
-audioElement.play().then(function() {
-audioElement.pause();
-}).catch(function(e){});
-} catch(e) {}
+unlockAudio(); // 유저 클릭 시 오디오 권한 승인
 
 switchScreen('songSelectScreen');
 renderCarousel();
@@ -704,21 +712,27 @@ if (currentTrackIndex >= TRACKS.length) currentTrackIndex = 0;
 updateCarousel();
 }
 
+// 🔥 715번 줄 Autoplay 에러 보완 처리
 function playAudioPreview() {
 stopAudio();
 var track = TRACKS[currentTrackIndex];
 audioElement.src = track.audioUrl;
 audioElement.currentTime = 15;
 audioElement.volume = 0.5;
-var p = audioElement.play();
-if (p !== undefined) {
-p.catch(function(e) { console.log('Autoplay prevented'); });
+
+var playPromise = audioElement.play();
+if (playPromise !== undefined) {
+playPromise.catch(function(e) {
+console.warn('Preview Audio Autoplay Blocked:', e.message);
+});
 }
 }
 
 function stopAudio() {
 if (audioElement) {
+try {
 audioElement.pause();
+} catch(e) {}
 }
 }
 
@@ -777,6 +791,7 @@ canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvas);
 
+// 🔥 802번 줄 인게임 본음원 Autoplay 에러 보완 처리
 function startGame() {
 switchScreen('gameScreen');
 resizeCanvas();
@@ -797,9 +812,12 @@ activeNotes = generateChart(track.bpm, 90);
 audioElement.src = track.audioUrl;
 audioElement.currentTime = 0;
 audioElement.volume = 0.8;
-var p = audioElement.play();
-if (p !== undefined) {
-p.catch(function(e) { console.log('Audio Play Error:', e); });
+
+var playPromise = audioElement.play();
+if (playPromise !== undefined) {
+playPromise.catch(function(e) {
+console.warn('Game Audio Autoplay Blocked:', e.message);
+});
 }
 
 startTime = performance.now();
@@ -1041,7 +1059,7 @@ console.error('Supabase Sync Error:', e);
 
 var dummyData = [
 { user_name: 'ProRhythm', score: finalScore + 5200, max_combo: maxCombo + 10 },
-{ user_name: currentUser, score: finalScore, max_combo: maxCombo },
+{ user_name: currentUser, score: finalScore },
 { user_name: 'BeatMaster', score: Math.max(0, finalScore - 3000), max_combo: Math.max(0, maxCombo - 15) }
  ].sort(function(a, b) { return b.score - a.score; });
 
