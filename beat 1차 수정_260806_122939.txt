@@ -545,8 +545,8 @@ font-weight: bold;
 // -------------------------------------------------------------
 // 1. SUPABASE CLIENT CONFIG (변수명 충돌 방지 안전 처리)
 // -------------------------------------------------------------
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+const SUPABASE_URL = 'https://ijmmqmarbkkkssciagof.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_-Yw_iVRLOGF0W1CFj_v9SA_PLm301S6';
 let supabaseClient = null;
 
 try {
