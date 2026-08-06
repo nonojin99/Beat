@@ -551,8 +551,8 @@ var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 var currentSource = null;
 
 // Supabase 설정
-var SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-var SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+var SUPABASE_URL = 'https://ijmmqmarbkkkssciagof.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_-Yw_iVRLOGF0W1CFj_v9SA_PLm301S6';
 var supabaseClient = null;
 
 try {
