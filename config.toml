@@ -1,0 +1,6 @@
+project_id = "beatdrop"
+
+[functions.submit-score]
+# 클라이언트가 쓰는 publishable 키는 어차피 페이지 소스에 노출돼 있어서
+# JWT 검증이 보호 수단이 되지 못한다. 실제 검증은 함수 내부에서 한다.
+verify_jwt = false
